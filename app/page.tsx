@@ -13,7 +13,7 @@ const students = [
 export default function Home() {
   const [screen, setScreen] = useState<"login" | "student" | "admin">("login");
   const [loginRole, setLoginRole] = useState<"student" | "admin">("student");
-  const [answers, setAnswers] = useState<Record<number, "know" | "need">}>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
+  const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
   const score = useMemo(() => Math.round((Object.values(answers).filter((a) => a === "know").length / Math.max(done, 1)) * 100), [answers, done]);
 
