@@ -12,4 +12,5 @@
 :global(.profile-setup-card) :global(.login-form){padding-top:58px;padding-bottom:58px}
 :global(.auth-loading){min-height:160px;display:grid;place-items:center;color:#6e7685;font-size:13px}
 :global(.login-button:disabled){opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
+:global(.profile-save-error){margin:12px 0 0;color:#c75448;background:#fff0ed;border:1px solid #f1c0b8;border-radius:6px;padding:9px 10px;font-size:11px;line-height:1.45}
 @media(max-width:650px){:global(.clerk-floating){right:14px;bottom:14px}}

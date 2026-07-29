@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
 import "./settings.module.css";
 import "./clerk.module.css";
 
@@ -21,7 +22,7 @@ export default function Home() {
   const done = Object.keys(answers).length;
   const score = useMemo(() => Math.round((Object.values(answers).filter((a) => a === "know").length / Math.max(done, 1)) * 100), [answers, done]);
 
-  if (screen === "login") return <ClerkSetup onComplete={(role) => setScreen(role)} />;
+  if (screen === "login") return <ClerkDatabaseSetup onComplete={(role) => setScreen(role)} />;
   const isSettings = screen.startsWith("settings");
   const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "settings-roster" ? "학급 명단 관리" : "풀이 대상 문제 관리";
   return <div className="app-shell"><aside className="sidebar"><div className="logo"><span>✦</span> 배움짝</div><div className="school-pill">2학년 3반 <span>⌄</span></div><div className="side-label">MENU</div><button className={screen === "admin" ? "side-link active" : "side-link"} onClick={() => setScreen("admin")}>▦ <span>학급 대시보드</span></button><button className={screen === "student" ? "side-link active" : "side-link"} onClick={() => setScreen("student")}>◌ <span>학생 화면</span></button><button className="side-link" onClick={() => setScreen("admin")}>♧ <span>짝 매칭 관리</span></button><div className="side-label settings-label">SETTINGS</div><button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 입력</span></button><button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>풀이 문제 설정</span></button><div className="sidebar-bottom"><div className="help-box"><b>도움이 필요하신가요?</b><span>사용 가이드 보기 →</span></div><button className="profile" onClick={() => setScreen("login")}><span className="mini-avatar">{isSettings || screen === "admin" ? "쌤" : "서"}</span><span><b>{isSettings || screen === "admin" ? "김선생님" : "박서연"}</b><small>{isSettings || screen === "admin" ? "교사 계정" : "학생 계정"}</small></span><span className="more">•••</span></button></div></aside><main className="dashboard"><header className="topbar"><div className="breadcrumb">배움짝 <span>/</span> {title}</div><div className="top-actions"><span>◔ 알림</span><button className="role-switch" onClick={() => setScreen(screen === "student" ? "admin" : "student")}>{screen === "student" ? "교사 화면 보기" : "학생 화면 보기"} ↗</button></div></header>{screen === "admin" ? <Admin /> : screen === "student" ? <Student answers={answers} setAnswers={setAnswers} done={done} score={score} /> : screen === "settings-roster" ? <RosterSettings /> : <ProblemSettings />}</main></div>;
