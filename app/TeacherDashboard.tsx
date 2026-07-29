@@ -201,7 +201,7 @@ export default function TeacherDashboard() {
     [selectedLesson?.questions, selectedResponses],
   );
   const comparisonAnswerCount =
-    comparableResults.length * selectedLesson.question_count;
+    comparableResults.length * (selectedLesson?.question_count ?? 0);
   const beforeSolvedCount = comparableResults.reduce(
     (total, result) =>
       total +
@@ -233,7 +233,7 @@ export default function TeacherDashboard() {
     ).length;
     return afterCount > beforeCount;
   }).length;
-  const questionChanges = (selectedLesson.questions ?? []).map((question) => {
+  const questionChanges = (selectedLesson?.questions ?? []).map((question) => {
     const key = String(question.number);
     const beforeCount = comparableResults.filter(
       (result) => result.before.answers?.[key] === "solved",
