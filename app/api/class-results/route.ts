@@ -71,7 +71,12 @@ export async function GET() {
 
   const lessonRows = lessons ?? [];
   if (!lessonRows.length) {
-    return NextResponse.json({ lessons: [], students: [], responses: [] });
+    return NextResponse.json({
+      lessons: [],
+      students: [],
+      responses: [],
+      pairings: [],
+    });
   }
 
   const classKeys = new Set(
@@ -80,8 +85,11 @@ export async function GET() {
     ),
   );
 
-  const [{ data: profiles, error: profileError }, { data: responses, error: responseError }] =
-    await Promise.all([
+  const [
+    { data: profiles, error: profileError },
+    { data: responses, error: responseError },
+    { data: pairings, error: pairingError },
+  ] = await Promise.all([
       teacher.supabase
         .from("profiles")
         .select(
@@ -100,10 +108,23 @@ export async function GET() {
           "lesson_id",
           lessonRows.map((lesson) => lesson.id),
         ),
+      teacher.supabase
+        .from("lesson_pairings")
+        .select(
+          "lesson_id, student_user_id, partner_user_id, partner_name, partner_student_number, score, helps_with, partner_helps_with, generated_at",
+        )
+        .in(
+          "lesson_id",
+          lessonRows.map((lesson) => lesson.id),
+        ),
     ]);
 
-  if (profileError || responseError) {
-    const message = profileError?.message ?? responseError?.message ?? "";
+  if (profileError || responseError || pairingError) {
+    const message =
+      profileError?.message ??
+      responseError?.message ??
+      pairingError?.message ??
+      "";
     return NextResponse.json(
       { error: readableSupabaseError(message) },
       { status: 500 },
@@ -123,6 +144,9 @@ export async function GET() {
     students,
     responses: (responses ?? []).filter((response) =>
       studentIds.has(response.student_user_id),
+    ),
+    pairings: (pairings ?? []).filter((pairing) =>
+      studentIds.has(pairing.student_user_id),
     ),
   });
 }

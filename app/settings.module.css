@@ -239,3 +239,56 @@
 :global(.student-pairing-waiting b){font-size:11px}
 :global(.student-pairing-waiting span){font-size:9px;line-height:1.55;color:#b9c5dd}
 @media(max-width:700px){:global(.student-pair-tasks){grid-template-columns:1fr}:global(.student-pair-people){grid-template-columns:1fr 24px 1fr}:global(.student-pair-people>div){grid-template-columns:34px 1fr}:global(.student-pair-people i){width:34px;height:34px}}
+:global(.teacher-dashboard-page){max-width:1200px;margin:0 auto;padding:0 32px 50px}
+:global(.dashboard-hero){display:flex;align-items:center;justify-content:space-between;gap:24px;padding:43px 0 27px}
+:global(.dashboard-hero h1){font:700 29px 'Space Grotesk';letter-spacing:-.05em;margin:0 0 9px}
+:global(.dashboard-hero p:not(.overline)){margin:0;color:var(--muted);font-size:13px}
+:global(.dashboard-lesson-switch){width:min(330px,40%);margin:0;display:flex;flex-direction:column;gap:7px}
+:global(.dashboard-lesson-switch span){font-size:9px;color:var(--blue);font-weight:700;letter-spacing:.08em}
+:global(.dashboard-lesson-switch select){height:44px;width:100%;border:1px solid #cbd5ef;border-radius:8px;background:#fff;color:var(--navy);padding:0 35px 0 12px;font-size:11px;font-weight:700;box-shadow:0 5px 16px #23335e0a}
+:global(.dashboard-stat-grid){display:grid;grid-template-columns:repeat(4,1fr);gap:13px;margin-bottom:17px}
+:global(.dashboard-stat-grid article){position:relative;padding:18px}
+:global(.dashboard-stat-grid article>span){font-size:10px;color:#838c9a}
+:global(.dashboard-stat-grid article>b){display:block;font:700 27px 'Space Grotesk';margin:7px 0 3px}
+:global(.dashboard-stat-grid article>small){font-size:8px;color:#a0a7b2}
+:global(.dashboard-stat-grid article>i){position:absolute;right:16px;top:17px;width:34px;height:34px;border-radius:50%;display:grid;place-items:center;font-style:normal;font-size:11px;font-weight:800}
+:global(.dashboard-stat-grid .blue){background:#e8edff;color:var(--blue)}
+:global(.dashboard-stat-grid .green){background:#e2f7ed;color:#299767}
+:global(.dashboard-stat-grid .coral){background:#fff0ed;color:#c35f51}
+:global(.dashboard-stat-grid .navy){background:#edf1fa;color:var(--navy)}
+:global(.dashboard-data-grid){display:grid;grid-template-columns:minmax(0,1.65fr) minmax(260px,.8fr);gap:17px}
+:global(.dashboard-heatmap-card){min-width:0}
+:global(.dashboard-heatmap-wrap){overflow-x:auto;margin-top:17px}
+:global(.dashboard-heatmap-table){width:100%;min-width:540px;border-collapse:collapse}
+:global(.dashboard-heatmap-table th){font-size:8px;color:#929aa7;font-weight:700;height:28px;text-align:center}
+:global(.dashboard-heatmap-table th:first-child){text-align:left;min-width:115px}
+:global(.dashboard-heatmap-table td){height:31px;text-align:center;border-top:1px solid #f0f2f6;font-size:9px}
+:global(.dashboard-heatmap-table td:first-child){text-align:left;color:#7d8693;white-space:nowrap}
+:global(.dashboard-heatmap-table td:first-child b){color:var(--ink);margin-left:3px}
+:global(.dashboard-heatmap-table td i){width:21px;height:21px;border-radius:5px;display:inline-grid;place-items:center;font-style:normal;font-size:8px;font-weight:800}
+:global(.dashboard-heatmap-table i.solved){background:#dff5e9;color:#299767}
+:global(.dashboard-heatmap-table i.unsolved){background:#fff0e3;color:#c86d40}
+:global(.dashboard-heatmap-table i.unanswered){background:#f0f2f6;color:#a4abb7}
+:global(.dashboard-difficult-card){min-height:250px}
+:global(.dashboard-difficult-row){display:grid;grid-template-columns:26px minmax(0,1fr) 32px;align-items:center;gap:8px;margin-top:18px}
+:global(.dashboard-difficult-row>strong){width:25px;height:25px;border-radius:50%;background:#fff0ed;color:#c96758;display:grid;place-items:center;font-size:10px}
+:global(.dashboard-difficult-row>div>b){display:block;max-width:145px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:10px}
+:global(.dashboard-difficult-row>div>div){height:5px;background:#f2ece9;margin-top:7px;border-radius:7px;overflow:hidden}
+:global(.dashboard-difficult-row i){display:block;height:100%;background:#d88675;border-radius:7px}
+:global(.dashboard-difficult-row>span){font-size:9px;color:#bf6758;text-align:right}
+:global(.dashboard-pairs-card){margin-top:17px}
+:global(.dashboard-pair-grid){display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:17px}
+:global(.dashboard-pair-grid article){position:relative;border:1px solid var(--line);border-radius:8px;padding:12px;display:grid;grid-template-columns:1fr 22px 1fr;align-items:center;gap:8px}
+:global(.dashboard-pair-grid article>div){display:grid;grid-template-columns:31px 1fr;grid-template-rows:auto auto;column-gap:8px;align-items:center}
+:global(.dashboard-pair-grid article>div i){grid-row:1/3;width:31px;height:31px;border-radius:9px;display:grid;place-items:center;background:#e8edff;color:var(--blue);font-style:normal;font-size:10px;font-weight:700}
+:global(.dashboard-pair-grid article>div:nth-of-type(2) i){background:#e2f7ed;color:#299767}
+:global(.dashboard-pair-grid article b){font-size:10px}
+:global(.dashboard-pair-grid article small){font-size:8px;color:#929aa7}
+:global(.dashboard-pair-grid article>strong){color:#a3acc0;text-align:center}
+:global(.dashboard-pair-grid article>span){position:absolute;right:10px;top:8px;font-size:7px;color:#6479aa;background:#f0f3fb;border-radius:999px;padding:4px 6px}
+:global(.dashboard-card-empty){padding:42px 12px;text-align:center;color:#929aa7;font-size:10px}
+:global(.dashboard-empty){margin-top:35px;padding:58px;text-align:center}
+:global(.dashboard-empty h2){font-size:18px;margin:0 0 8px}
+:global(.dashboard-empty p){font-size:11px;color:#7f8896;margin:0}
+@media(max-width:950px){:global(.dashboard-stat-grid){grid-template-columns:repeat(2,1fr)}:global(.dashboard-data-grid){grid-template-columns:1fr}}
+@media(max-width:650px){:global(.teacher-dashboard-page){padding:0 18px 40px}:global(.dashboard-hero){display:block;padding-top:30px}:global(.dashboard-lesson-switch){width:100%;margin-top:18px}:global(.dashboard-stat-grid){grid-template-columns:1fr 1fr}:global(.dashboard-pair-grid){grid-template-columns:1fr}}

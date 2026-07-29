@@ -9,6 +9,7 @@ import TeacherLessonSettings from "./TeacherLessonSettings";
 import StudentLessonDashboard from "./StudentLessonDashboard";
 import TeacherClassResults from "./TeacherClassResults";
 import TeacherPairMatching from "./TeacherPairMatching";
+import TeacherDashboard from "./TeacherDashboard";
 import "./settings.module.css";
 import "./clerk.module.css";
 
@@ -78,7 +79,7 @@ export default function Home() {
           <div className="top-actions"><span>◔ 알림</span><span className="account-role-label">{isTeacher ? "교사 관리자" : "학생"}</span></div>
         </header>
         {screen === "admin" ? (
-          <Admin />
+          <TeacherDashboard />
         ) : screen === "student" ? (
           <StudentLessonDashboard profile={profile} />
         ) : screen === "matching" ? (
