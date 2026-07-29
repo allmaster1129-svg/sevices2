@@ -7,6 +7,7 @@ import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import TeacherLessonSettings from "./TeacherLessonSettings";
 import StudentLessonDashboard from "./StudentLessonDashboard";
+import TeacherClassResults from "./TeacherClassResults";
 import "./settings.module.css";
 import "./clerk.module.css";
 
@@ -39,7 +40,7 @@ export default function Home() {
   }
 
   const isTeacher = profile.role === "admin";
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "settings-roster" ? "학급 명단 관리" : "수업·문항 설정";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "settings-roster" ? "학급 명단 확인" : "수업·문항 설정";
   const schoolLabel = isTeacher
     ? "교사 관리자"
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
@@ -55,7 +56,7 @@ export default function Home() {
             <button className={screen === "admin" ? "side-link active" : "side-link"} onClick={() => setScreen("admin")}>▦ <span>학급 대시보드</span></button>
             <button className="side-link" onClick={() => setScreen("admin")}>♧ <span>짝 매칭 관리</span></button>
             <div className="side-label settings-label">SETTINGS</div>
-            <button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 입력</span></button>
+            <button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 확인</span></button>
             <button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>수업·문항 설정</span></button>
           </>
         ) : (
@@ -80,7 +81,7 @@ export default function Home() {
         ) : screen === "student" ? (
           <StudentLessonDashboard profile={profile} />
         ) : screen === "settings-roster" ? (
-          <RosterSettings />
+          <TeacherClassResults />
         ) : (
           <TeacherLessonSettings
             databaseSynced={profile.databaseSynced}

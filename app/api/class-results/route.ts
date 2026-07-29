@@ -1,0 +1,128 @@
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { createClient } from "@/utils/supabase/server";
+
+function readableSupabaseError(message: string) {
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes("no suitable key") ||
+    normalized.includes("wrong key type") ||
+    normalized.includes("invalid jwt") ||
+    normalized.includes("jwk")
+  ) {
+    return "Supabase 인증 연결이 아직 완료되지 않았습니다. Supabase Third-Party Auth에 Clerk를 등록하거나 서버에 SUPABASE_SECRET_KEY를 설정해 주세요.";
+  }
+  return message;
+}
+
+async function requireTeacher() {
+  const { userId } = await auth();
+  if (!userId) {
+    return { error: "로그인이 필요합니다.", status: 401 } as const;
+  }
+
+  const supabase = await createClient();
+  const { data: profile, error } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (error) {
+    return {
+      error: readableSupabaseError(error.message),
+      status: 503,
+    } as const;
+  }
+  if (profile?.role !== "admin") {
+    return {
+      error: "교사 계정만 학급 명단과 응답을 확인할 수 있습니다.",
+      status: 403,
+    } as const;
+  }
+
+  return { userId, supabase } as const;
+}
+
+export async function GET() {
+  const teacher = await requireTeacher();
+  if ("error" in teacher) {
+    return NextResponse.json(
+      { error: teacher.error },
+      { status: teacher.status },
+    );
+  }
+
+  const { data: lessons, error: lessonError } = await teacher.supabase
+    .from("lesson_settings")
+    .select(
+      "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
+    )
+    .eq("teacher_user_id", teacher.userId)
+    .order("learning_date", { ascending: false })
+    .order("learning_time", { ascending: false });
+
+  if (lessonError) {
+    return NextResponse.json(
+      { error: readableSupabaseError(lessonError.message) },
+      { status: 500 },
+    );
+  }
+
+  const lessonRows = lessons ?? [];
+  if (!lessonRows.length) {
+    return NextResponse.json({ lessons: [], students: [], responses: [] });
+  }
+
+  const classKeys = new Set(
+    lessonRows.map(
+      (lesson) => `${lesson.grade}-${lesson.class_number}`,
+    ),
+  );
+
+  const [{ data: profiles, error: profileError }, { data: responses, error: responseError }] =
+    await Promise.all([
+      teacher.supabase
+        .from("profiles")
+        .select(
+          "user_id, display_name, grade, class_number, student_number, created_at",
+        )
+        .eq("role", "student")
+        .order("grade")
+        .order("class_number")
+        .order("student_number"),
+      teacher.supabase
+        .from("lesson_question_responses")
+        .select(
+          "lesson_id, student_user_id, answers, completed_at, updated_at",
+        )
+        .in(
+          "lesson_id",
+          lessonRows.map((lesson) => lesson.id),
+        ),
+    ]);
+
+  if (profileError || responseError) {
+    const message = profileError?.message ?? responseError?.message ?? "";
+    return NextResponse.json(
+      { error: readableSupabaseError(message) },
+      { status: 500 },
+    );
+  }
+
+  const students = (profiles ?? []).filter(
+    (profile) =>
+      profile.grade &&
+      profile.class_number &&
+      classKeys.has(`${profile.grade}-${profile.class_number}`),
+  );
+  const studentIds = new Set(students.map((student) => student.user_id));
+
+  return NextResponse.json({
+    lessons: lessonRows,
+    students,
+    responses: (responses ?? []).filter((response) =>
+      studentIds.has(response.student_user_id),
+    ),
+  });
+}
