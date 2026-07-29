@@ -223,6 +223,54 @@ export async function POST(request: Request) {
       studentNumber: student.student_number,
     }));
 
+  const { error: deleteError } = await teacher.supabase
+    .from("lesson_pairings")
+    .delete()
+    .eq("lesson_id", lesson.id);
+
+  if (deleteError) {
+    return NextResponse.json(
+      { error: readableSupabaseError(deleteError.message) },
+      { status: 500 },
+    );
+  }
+
+  const pairingRows = pairs.flatMap((pair) => [
+    {
+      lesson_id: lesson.id,
+      student_user_id: pair.first.userId,
+      partner_user_id: pair.second.userId,
+      partner_name: pair.second.name,
+      partner_student_number: pair.second.studentNumber,
+      score: pair.score,
+      helps_with: pair.first.helpsWith,
+      partner_helps_with: pair.second.helpsWith,
+    },
+    {
+      lesson_id: lesson.id,
+      student_user_id: pair.second.userId,
+      partner_user_id: pair.first.userId,
+      partner_name: pair.first.name,
+      partner_student_number: pair.first.studentNumber,
+      score: pair.score,
+      helps_with: pair.second.helpsWith,
+      partner_helps_with: pair.first.helpsWith,
+    },
+  ]);
+
+  if (pairingRows.length) {
+    const { error: pairingError } = await teacher.supabase
+      .from("lesson_pairings")
+      .insert(pairingRows);
+
+    if (pairingError) {
+      return NextResponse.json(
+        { error: readableSupabaseError(pairingError.message) },
+        { status: 500 },
+      );
+    }
+  }
+
   return NextResponse.json({
     lesson,
     pairs,

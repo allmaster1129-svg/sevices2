@@ -75,28 +75,58 @@ export async function GET() {
     completed_at: string | null;
     updated_at: string;
   }> = [];
+  let pairingRows: Array<{
+    lesson_id: string;
+    partner_user_id: string;
+    partner_name: string;
+    partner_student_number: number | null;
+    score: number;
+    helps_with: number[];
+    partner_helps_with: number[];
+    generated_at: string;
+  }> = [];
 
   if (lessonIds.length) {
-    const { data, error } = await student.supabase
-      .from("lesson_question_responses")
-      .select("lesson_id, answers, completed_at, updated_at")
-      .eq("student_user_id", student.userId)
-      .in("lesson_id", lessonIds);
+    const [
+      { data: responseData, error: responseError },
+      { data: pairingData, error: pairingError },
+    ] = await Promise.all([
+      student.supabase
+        .from("lesson_question_responses")
+        .select("lesson_id, answers, completed_at, updated_at")
+        .eq("student_user_id", student.userId)
+        .in("lesson_id", lessonIds),
+      student.supabase
+        .from("lesson_pairings")
+        .select(
+          "lesson_id, partner_user_id, partner_name, partner_student_number, score, helps_with, partner_helps_with, generated_at",
+        )
+        .eq("student_user_id", student.userId)
+        .in("lesson_id", lessonIds),
+    ]);
 
-    if (error) {
-      return NextResponse.json({ error: error.message }, { status: 500 });
+    if (responseError || pairingError) {
+      return NextResponse.json(
+        { error: responseError?.message ?? pairingError?.message },
+        { status: 500 },
+      );
     }
-    responseRows = data ?? [];
+    responseRows = responseData ?? [];
+    pairingRows = pairingData ?? [];
   }
 
   const responseByLesson = new Map(
     responseRows.map((row) => [row.lesson_id, row]),
+  );
+  const pairingByLesson = new Map(
+    pairingRows.map((row) => [row.lesson_id, row]),
   );
 
   return NextResponse.json({
     lessons: (lessons ?? []).map((lesson) => ({
       ...lesson,
       response: responseByLesson.get(lesson.id) ?? null,
+      pairing: pairingByLesson.get(lesson.id) ?? null,
     })),
   });
 }

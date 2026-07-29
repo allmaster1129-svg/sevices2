@@ -41,7 +41,7 @@ export default function Home() {
   }
 
   const isTeacher = profile.role === "admin";
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : "수업·문항 설정";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : "수업·문항 설정";
   const schoolLabel = isTeacher
     ? "교사 관리자"
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
@@ -61,7 +61,7 @@ export default function Home() {
             <button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>수업·문항 설정</span></button>
           </>
         ) : (
-          <button className="side-link active" onClick={() => setScreen("student")}>◌ <span>나의 학습 화면</span></button>
+          <button className="side-link active" onClick={() => setScreen("student")}>◌ <span>나의 배움짝</span></button>
         )}
         <div className="sidebar-bottom">
           <div className="help-box"><b>도움이 필요하신가요?</b><span>사용 가이드 보기 →</span></div>

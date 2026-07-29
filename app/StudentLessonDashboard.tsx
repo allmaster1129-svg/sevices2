@@ -25,6 +25,15 @@ type StudentLesson = {
     completed_at: string | null;
     updated_at: string;
   } | null;
+  pairing: {
+    partner_user_id: string;
+    partner_name: string;
+    partner_student_number: number | null;
+    score: number;
+    helps_with: number[];
+    partner_helps_with: number[];
+    generated_at: string;
+  } | null;
 };
 
 function formatDate(value: string) {
@@ -141,10 +150,11 @@ export default function StudentLessonDashboard({
       <div className="student-lessons-hero">
         <div>
           <p className="overline">MY CLASS / LESSON CHECK</p>
-          <h1>{profile.displayName} 님의 수업을 선택해요</h1>
+          <h1>{profile.displayName} 님의 배움짝과 학습을 확인해요</h1>
           <p>
             {profile.grade}학년 {profile.classNumber}반에 등록된 수업만
-            보여드려요. 수업을 고른 뒤 문항별 풀이 여부를 표시하세요.
+            보여드려요. 수업을 고른 뒤 나의 짝과 문항별 풀이 여부를
+            확인하세요.
           </p>
         </div>
         <span className="student-class-badge">
@@ -197,7 +207,79 @@ export default function StudentLessonDashboard({
           </aside>
 
           {selectedLesson && (
-            <section className="panel student-question-card">
+            <div className="student-learning-column">
+              <section className="panel student-pairing-card">
+                <div className="student-pairing-head">
+                  <div>
+                    <span>MY LEARNING PARTNER</span>
+                    <h2>나의 배움짝</h2>
+                  </div>
+                  {selectedLesson.pairing && (
+                    <b>보완 점수 {selectedLesson.pairing.score}</b>
+                  )}
+                </div>
+                {selectedLesson.pairing ? (
+                  <>
+                    <div className="student-pair-people">
+                      <div>
+                        <i>{profile.displayName.slice(0, 1)}</i>
+                        <b>{profile.displayName}</b>
+                        <small>{profile.studentNumber}번 · 나</small>
+                      </div>
+                      <strong>↔</strong>
+                      <div>
+                        <i>
+                          {selectedLesson.pairing.partner_name.slice(0, 1)}
+                        </i>
+                        <b>{selectedLesson.pairing.partner_name}</b>
+                        <small>
+                          {selectedLesson.pairing.partner_student_number ?? "-"}
+                          번 · 배움짝
+                        </small>
+                      </div>
+                    </div>
+                    <div className="student-pair-tasks">
+                      <div>
+                        <span>내가 친구에게 설명해요</span>
+                        <div>
+                          {selectedLesson.pairing.helps_with.length ? (
+                            selectedLesson.pairing.helps_with.map((number) => (
+                              <b key={number}>{number}번</b>
+                            ))
+                          ) : (
+                            <small>설명할 문항이 없어요.</small>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span>친구에게 도움을 받아요</span>
+                        <div>
+                          {selectedLesson.pairing.partner_helps_with.length ? (
+                            selectedLesson.pairing.partner_helps_with.map(
+                              (number) => <b key={number}>{number}번</b>,
+                            )
+                          ) : (
+                            <small>도움받을 문항이 없어요.</small>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="student-pairing-waiting">
+                    <i>♧</i>
+                    <div>
+                      <b>아직 이 수업의 배움짝이 정해지지 않았어요.</b>
+                      <span>
+                        문제 해결 여부를 모두 저장한 뒤 교사가 매칭하면
+                        이곳에서 바로 확인할 수 있어요.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <section className="panel student-question-card">
               <div className="student-question-head">
                 <div>
                   <span>
@@ -290,7 +372,8 @@ export default function StudentLessonDashboard({
                   {saving ? "저장 중..." : "풀이 여부 저장하기 →"}
                 </button>
               </div>
-            </section>
+              </section>
+            </div>
           )}
         </div>
       )}
