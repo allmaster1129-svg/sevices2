@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import "./settings.module.css";
@@ -34,6 +34,14 @@ function ClerkSetup({ onComplete }: { onComplete: (role: "student" | "admin") =>
   const [name, setName] = useState(saved.profileName ?? user?.firstName ?? "");
   const [classCode, setClassCode] = useState(saved.classCode ?? "");
   const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    if (!user) return;
+    const profile = user.unsafeMetadata as { role?: "student" | "admin"; classCode?: string; profileName?: string };
+    if (profile.role) setRole(profile.role);
+    setName(profile.profileName ?? user.firstName ?? "");
+    setClassCode(profile.classCode ?? "");
+  }, [user]);
 
   if (!isLoaded) return <main className="login-page"><div className="login-card auth-loading"><p>Clerk 인증을 확인하고 있어요...</p></div></main>;
   if (!isSignedIn || !user) return <main className="login-page"><div className="login-mark"><span>✦</span> 배움짝</div><div className="login-card"><div className="login-intro"><p className="overline">CLERK AUTHENTICATION</p><h1>안전하게 로그인하고,<br /><em>나만의 배움짝</em>을 시작해요.</h1><p>학생과 교사 계정은 Clerk로 안전하게 인증됩니다.<br />인증 후 학급 정보를 입력하면 맞춤 화면이 열려요.</p><div className="login-orb"><i /><i /><i /></div></div><div className="login-form"><h2>배움짝 로그인</h2><p className="muted">먼저 계정을 인증해 주세요.</p><div className="clerk-login-stack"><SignInButton mode="modal"><button className="clerk-primary clerk-wide">Clerk로 로그인</button></SignInButton><SignUpButton mode="modal"><button className="clerk-secondary clerk-wide">처음이라면 회원가입</button></SignUpButton></div><p className="safe">🔒 Clerk가 계정과 비밀번호를 안전하게 관리해요.</p></div></div><p className="login-footer">인증이 끝나면 학생/교사와 학급 코드를 입력합니다.</p></main>;
