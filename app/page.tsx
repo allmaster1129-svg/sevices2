@@ -11,8 +11,11 @@ import TeacherClassResults from "./TeacherClassResults";
 import TeacherPairMatching from "./TeacherPairMatching";
 import TeacherDashboard from "./TeacherDashboard";
 import StudentActivityResults from "./StudentActivityResults";
+import NotificationCenter from "./NotificationCenter";
+import UsageGuide from "./UsageGuide";
 import "./settings.module.css";
 import "./clerk.module.css";
+import "./notifications-guide.css";
 
 const questions = Array.from({ length: 12 }, (_, i) => i + 1);
 const students = [
@@ -22,8 +25,18 @@ const students = [
   { name: "최하늘", role: "질문하는 짝", color: "#ffe6e2", accuracy: "71%", matched: "이준혁" },
 ];
 
+type Screen =
+  | "login"
+  | "student"
+  | "student-results"
+  | "admin"
+  | "matching"
+  | "settings-roster"
+  | "settings-problems"
+  | "guide";
+
 export default function Home() {
-  const [screen, setScreen] = useState<"login" | "student" | "student-results" | "admin" | "matching" | "settings-roster" | "settings-problems">("login");
+  const [screen, setScreen] = useState<Screen>("login");
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
@@ -43,7 +56,7 @@ export default function Home() {
   }
 
   const isTeacher = profile.role === "admin";
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : "수업·문항 설정";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : screen === "guide" ? "사용 가이드" : "수업·문항 설정";
   const schoolLabel = isTeacher
     ? "교사 관리자"
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
@@ -69,7 +82,14 @@ export default function Home() {
           </>
         )}
         <div className="sidebar-bottom">
-          <div className="help-box"><b>도움이 필요하신가요?</b><span>사용 가이드 보기 →</span></div>
+          <button
+            type="button"
+            className={screen === "guide" ? "help-box active" : "help-box"}
+            onClick={() => setScreen("guide")}
+          >
+            <b>도움이 필요하신가요?</b>
+            <span>사용 가이드 보기 →</span>
+          </button>
           <button className="profile" onClick={() => { setProfile(null); setScreen("login"); }}>
             <span className="mini-avatar">{isTeacher ? "쌤" : profile.displayName.slice(0, 1)}</span>
             <span><b>{profile.displayName}</b><small>{isTeacher ? "교사 계정" : "학생 계정"}</small></span>
@@ -80,7 +100,10 @@ export default function Home() {
       <main className="dashboard">
         <header className="topbar">
           <div className="breadcrumb">배움짝 <span>/</span> {title}</div>
-          <div className="top-actions"><span>◔ 알림</span><span className="account-role-label">{isTeacher ? "교사 관리자" : "학생"}</span></div>
+          <div className="top-actions">
+            <NotificationCenter isTeacher={isTeacher} />
+            <span className="account-role-label">{isTeacher ? "교사 관리자" : "학생"}</span>
+          </div>
         </header>
         {screen === "admin" ? (
           <TeacherDashboard />
@@ -92,6 +115,8 @@ export default function Home() {
           <TeacherPairMatching />
         ) : screen === "settings-roster" ? (
           <TeacherClassResults />
+        ) : screen === "guide" ? (
+          <UsageGuide isTeacher={isTeacher} />
         ) : (
           <TeacherLessonSettings
             databaseSynced={profile.databaseSynced}
