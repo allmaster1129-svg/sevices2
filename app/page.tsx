@@ -6,6 +6,7 @@ import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/ne
 import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import TeacherLessonSettings from "./TeacherLessonSettings";
+import StudentLessonDashboard from "./StudentLessonDashboard";
 import "./settings.module.css";
 import "./clerk.module.css";
 
@@ -77,7 +78,7 @@ export default function Home() {
         {screen === "admin" ? (
           <Admin />
         ) : screen === "student" ? (
-          <Student profile={profile} answers={answers} setAnswers={setAnswers} done={done} score={score} />
+          <StudentLessonDashboard profile={profile} />
         ) : screen === "settings-roster" ? (
           <RosterSettings />
         ) : (
