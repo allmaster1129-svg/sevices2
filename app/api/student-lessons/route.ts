@@ -85,11 +85,19 @@ export async function GET() {
     partner_helps_with: number[];
     generated_at: string;
   }> = [];
+  let postActivityRows: Array<{
+    lesson_id: string;
+    answers: Record<string, AnswerStatus>;
+    reflection: string;
+    completed_at: string | null;
+    updated_at: string;
+  }> = [];
 
   if (lessonIds.length) {
     const [
       { data: responseData, error: responseError },
       { data: pairingData, error: pairingError },
+      { data: postActivityData, error: postActivityError },
     ] = await Promise.all([
       student.supabase
         .from("lesson_question_responses")
@@ -103,16 +111,27 @@ export async function GET() {
         )
         .eq("student_user_id", student.userId)
         .in("lesson_id", lessonIds),
+      student.supabase
+        .from("lesson_post_activity_responses")
+        .select("lesson_id, answers, reflection, completed_at, updated_at")
+        .eq("student_user_id", student.userId)
+        .in("lesson_id", lessonIds),
     ]);
 
-    if (responseError || pairingError) {
+    if (responseError || pairingError || postActivityError) {
       return NextResponse.json(
-        { error: responseError?.message ?? pairingError?.message },
+        {
+          error:
+            responseError?.message ??
+            pairingError?.message ??
+            postActivityError?.message,
+        },
         { status: 500 },
       );
     }
     responseRows = responseData ?? [];
     pairingRows = pairingData ?? [];
+    postActivityRows = postActivityData ?? [];
   }
 
   const responseByLesson = new Map(
@@ -121,12 +140,17 @@ export async function GET() {
   const pairingByLesson = new Map(
     pairingRows.map((row) => [row.lesson_id, row]),
   );
+  const postActivityByLesson = new Map(
+    postActivityRows.map((row) => [row.lesson_id, row]),
+  );
 
   return NextResponse.json({
     lessons: (lessons ?? []).map((lesson) => ({
       ...lesson,
       response: responseByLesson.get(lesson.id) ?? null,
       pairing: pairingByLesson.get(lesson.id) ?? null,
+      post_activity_response:
+        postActivityByLesson.get(lesson.id) ?? null,
     })),
   });
 }

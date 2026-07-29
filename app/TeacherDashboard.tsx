@@ -47,6 +47,14 @@ type Pairing = {
   partner_helps_with: number[];
 };
 
+type PostActivityResponse = {
+  lesson_id: string;
+  student_user_id: string;
+  answers: Record<string, AnswerStatus>;
+  reflection: string;
+  completed_at: string | null;
+};
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
@@ -61,6 +69,9 @@ export default function TeacherDashboard() {
   const [students, setStudents] = useState<Student[]>([]);
   const [responses, setResponses] = useState<LessonResponse[]>([]);
   const [pairings, setPairings] = useState<Pairing[]>([]);
+  const [postActivityResponses, setPostActivityResponses] = useState<
+    PostActivityResponse[]
+  >([]);
   const [lessonId, setLessonId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -73,6 +84,7 @@ export default function TeacherDashboard() {
           students?: Student[];
           responses?: LessonResponse[];
           pairings?: Pairing[];
+          postActivityResponses?: PostActivityResponse[];
           error?: string;
         };
         if (!response.ok) {
@@ -83,6 +95,7 @@ export default function TeacherDashboard() {
         setStudents(data.students ?? []);
         setResponses(data.responses ?? []);
         setPairings(data.pairings ?? []);
+        setPostActivityResponses(data.postActivityResponses ?? []);
         setLessonId(nextLessons[0]?.id ?? "");
       })
       .catch((reason) =>
@@ -141,6 +154,30 @@ export default function TeacherDashboard() {
       return true;
     });
   }, [pairings, selectedLesson?.id]);
+  const selectedPostResponses = useMemo(
+    () =>
+      postActivityResponses.filter(
+        (response) => response.lesson_id === selectedLesson?.id,
+      ),
+    [postActivityResponses, selectedLesson?.id],
+  );
+  const comparableResults = useMemo(
+    () =>
+      selectedPostResponses
+        .map((postResponse) => {
+          const before = responseByStudent.get(postResponse.student_user_id);
+          return before ? { before, after: postResponse } : null;
+        })
+        .filter(
+          (
+            result,
+          ): result is {
+            before: LessonResponse;
+            after: PostActivityResponse;
+          } => Boolean(result),
+        ),
+    [responseByStudent, selectedPostResponses],
+  );
 
   const respondedCount = selectedResponses.length;
   const responseRate = classStudents.length
@@ -163,6 +200,60 @@ export default function TeacherDashboard() {
         .slice(0, 3),
     [selectedLesson?.questions, selectedResponses],
   );
+  const comparisonAnswerCount =
+    comparableResults.length * selectedLesson.question_count;
+  const beforeSolvedCount = comparableResults.reduce(
+    (total, result) =>
+      total +
+      Object.values(result.before.answers ?? {}).filter(
+        (answer) => answer === "solved",
+      ).length,
+    0,
+  );
+  const afterSolvedCount = comparableResults.reduce(
+    (total, result) =>
+      total +
+      Object.values(result.after.answers ?? {}).filter(
+        (answer) => answer === "solved",
+      ).length,
+    0,
+  );
+  const beforeSolvedRate = comparisonAnswerCount
+    ? Math.round((beforeSolvedCount / comparisonAnswerCount) * 100)
+    : 0;
+  const afterSolvedRate = comparisonAnswerCount
+    ? Math.round((afterSolvedCount / comparisonAnswerCount) * 100)
+    : 0;
+  const improvedStudents = comparableResults.filter((result) => {
+    const beforeCount = Object.values(result.before.answers ?? {}).filter(
+      (answer) => answer === "solved",
+    ).length;
+    const afterCount = Object.values(result.after.answers ?? {}).filter(
+      (answer) => answer === "solved",
+    ).length;
+    return afterCount > beforeCount;
+  }).length;
+  const questionChanges = (selectedLesson.questions ?? []).map((question) => {
+    const key = String(question.number);
+    const beforeCount = comparableResults.filter(
+      (result) => result.before.answers?.[key] === "solved",
+    ).length;
+    const afterCount = comparableResults.filter(
+      (result) => result.after.answers?.[key] === "solved",
+    ).length;
+    const beforeRate = comparableResults.length
+      ? Math.round((beforeCount / comparableResults.length) * 100)
+      : 0;
+    const afterRate = comparableResults.length
+      ? Math.round((afterCount / comparableResults.length) * 100)
+      : 0;
+    return {
+      ...question,
+      beforeRate,
+      afterRate,
+      change: afterRate - beforeRate,
+    };
+  });
 
   if (loading) {
     return (
@@ -252,6 +343,67 @@ export default function TeacherDashboard() {
           <i className="navy">♧</i>
         </article>
       </div>
+
+      <section className="panel activity-change-card">
+        <div className="panel-head">
+          <div>
+            <h2>배움짝 활동 전후 변화</h2>
+            <p>
+              활동 전 설문과 활동 후 결과를 모두 제출한 학생을 비교합니다.
+            </p>
+          </div>
+          <span className="trend">{comparableResults.length}명 비교</span>
+        </div>
+        {!comparableResults.length ? (
+          <div className="dashboard-card-empty">
+            학생이 활동 후 결과를 입력하면 변화 자료가 표시됩니다.
+          </div>
+        ) : (
+          <div className="activity-change-layout">
+            <div className="activity-change-summary">
+              <div>
+                <span>활동 전 해결률</span>
+                <b>{beforeSolvedRate}%</b>
+              </div>
+              <strong>→</strong>
+              <div>
+                <span>활동 후 해결률</span>
+                <b>{afterSolvedRate}%</b>
+              </div>
+              <div className="activity-improvement">
+                <span>해결률 변화</span>
+                <b>
+                  {afterSolvedRate - beforeSolvedRate >= 0 ? "+" : ""}
+                  {afterSolvedRate - beforeSolvedRate}%p
+                </b>
+                <small>{improvedStudents}명의 해결 문항 증가</small>
+              </div>
+            </div>
+            <div className="activity-question-changes">
+              {questionChanges.map((question) => (
+                <div key={question.number}>
+                  <b>{question.number}번</b>
+                  <span>{question.beforeRate}%</span>
+                  <i>→</i>
+                  <span>{question.afterRate}%</span>
+                  <strong
+                    className={
+                      question.change > 0
+                        ? "improved"
+                        : question.change < 0
+                          ? "declined"
+                          : ""
+                    }
+                  >
+                    {question.change > 0 ? "+" : ""}
+                    {question.change}%p
+                  </strong>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+      </section>
 
       <div className="dashboard-data-grid">
         <section className="panel dashboard-heatmap-card">
