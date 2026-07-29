@@ -9,6 +9,8 @@
   --comic-mint: #bfe2d1;
   --comic-line: #302e2b;
   --comic-shadow: 5px 6px 0 #302e2b;
+  --ink: #24211e;
+  --muted: #514d47;
 }
 
 body {
@@ -18,6 +20,8 @@ body {
     linear-gradient(115deg, #fff8 0%, transparent 38%);
   background-size: 7px 7px, auto;
   color: var(--comic-charcoal);
+  font-size: 16px;
+  line-height: 1.55;
 }
 
 button,
@@ -25,6 +29,173 @@ input,
 select,
 textarea {
   color: var(--comic-charcoal);
+  font-size: 15px;
+}
+
+p,
+small,
+label,
+span {
+  text-rendering: optimizeLegibility;
+}
+
+.muted,
+.safe,
+.panel-head p,
+.settings-hero p:not(.overline),
+.dashboard-hero p:not(.overline),
+.student-lessons-hero p:not(.overline),
+.activity-results-hero p:not(.overline),
+.guide-hero > div > p:last-child {
+  color: #514d47 !important;
+}
+
+.side-link {
+  font-size: 15px;
+}
+
+.school-pill,
+.breadcrumb,
+.top-actions,
+.profile b {
+  font-size: 14px;
+}
+
+.profile small,
+.help-box b,
+.help-box span,
+.logout-button {
+  font-size: 13px;
+}
+
+.panel h2,
+.panel-head h2 {
+  font-size: 19px;
+}
+
+.panel-head p,
+.settings-hero p:not(.overline),
+.dashboard-hero p:not(.overline),
+.student-lessons-hero p:not(.overline),
+.activity-results-hero p:not(.overline),
+.guide-hero > div > p:last-child {
+  font-size: 15px !important;
+  line-height: 1.7;
+}
+
+.overline {
+  font-size: 12px;
+}
+
+.settings-count,
+.student-class-badge,
+.guide-role,
+.account-role-label,
+.teacher-only-badge,
+.trend {
+  font-size: 13px !important;
+}
+
+.settings-count b,
+.student-class-badge b {
+  font-size: 14px !important;
+}
+
+label,
+.lesson-meta-grid label,
+.class-results-filters label,
+.matching-filters label,
+.activity-reflection {
+  color: #35322e !important;
+  font-size: 14px !important;
+}
+
+input,
+select,
+textarea,
+.lesson-meta-grid select,
+.dashboard-lesson-switch select {
+  color: #24211e !important;
+  font-size: 14px !important;
+}
+
+.primary,
+.secondary,
+.login-button,
+.clerk-primary,
+.clerk-secondary,
+.answer-toggle button,
+.activity-question-list button,
+.problem-pill,
+.settings-actions button {
+  font-size: 14px !important;
+}
+
+.lesson-picker-head,
+.lesson-choice b,
+.student-question-copy h3,
+.activity-question-list h3,
+.matched-students b,
+.dashboard-pair-grid article b {
+  font-size: 14px !important;
+}
+
+.lesson-choice span,
+.lesson-choice small,
+.student-question-head p,
+.student-question-copy p,
+.student-answer-footer > span,
+.activity-result-head p,
+.activity-question-list small,
+.activity-result-footer > span,
+.matched-students small,
+.match-directions span,
+.match-directions b,
+.dashboard-card-empty,
+.dashboard-pair-grid article small {
+  color: #554f48 !important;
+  font-size: 12px !important;
+  line-height: 1.55;
+}
+
+.class-results-table th,
+.class-results-table td,
+.dashboard-heatmap-table th,
+.dashboard-heatmap-table td {
+  color: #3f3a34 !important;
+  font-size: 12px !important;
+}
+
+.class-results-table td,
+.dashboard-heatmap-table td {
+  height: 42px;
+}
+
+.matching-card-head span,
+.matching-card-head b,
+.matching-stats span,
+.matching-stats small,
+.class-results-stats span,
+.class-results-stats small,
+.dashboard-stat-grid article > span,
+.dashboard-stat-grid article > small {
+  color: #49443e !important;
+  font-size: 12px !important;
+}
+
+.notification-heading span,
+.notification-item p,
+.notification-item time,
+.notification-empty,
+.notification-error {
+  color: #514d47;
+  font-size: 12px;
+}
+
+.notification-item b,
+.notification-trigger {
+  color: #302d29;
+  font-size: 14px;
 }
 
 .app-shell {
@@ -210,7 +381,7 @@ textarea {
 .activity-results-hero,
 .guide-hero {
   position: relative;
-  min-height: 150px;
+  min-height: 210px;
   align-items: center;
   padding: 25px 300px 25px 26px;
   border: 2px solid var(--comic-line);
@@ -254,17 +425,28 @@ textarea {
 .comic-cue {
   position: absolute;
   z-index: 2;
-  right: 22px;
+  right: 16px;
   bottom: -2px;
-  width: 252px;
-  display: flex;
+  width: 292px;
+  height: 138px;
+  display: grid;
+  grid-template-columns: 178px 108px;
   align-items: flex-end;
-  justify-content: flex-end;
   pointer-events: none;
 }
 
+.comic-cue .office-character {
+  grid-column: 2;
+  grid-row: 1;
+  justify-self: end;
+}
+
 .comic-cue .comic-bubble {
-  margin: 0 0 86px -22px;
+  grid-column: 1;
+  grid-row: 1;
+  align-self: start;
+  max-width: 176px;
+  margin: 16px -8px 0 0;
 }
 
 .comic-bubble {
@@ -275,8 +457,9 @@ textarea {
   border-radius: 48% 48% 46% 42% / 48% 44% 52% 46%;
   background: var(--comic-paper);
   box-shadow: 2px 3px 0 var(--comic-line);
-  font-size: 11px;
-  line-height: 1.45;
+  color: #24211e;
+  font-size: 13px;
+  line-height: 1.5;
 }
 
 .comic-bubble::after {
@@ -299,7 +482,7 @@ textarea {
 
 .comic-bubble b {
   margin-bottom: 3px;
-  font-size: 9px;
+  font-size: 11px;
   letter-spacing: 0.08em;
 }
 
@@ -327,37 +510,51 @@ textarea {
 .office-character {
   position: relative;
   flex: 0 0 auto;
-  width: 132px;
-  height: 168px;
+  width: 136px;
+  height: 172px;
 }
 
 .office-character.compact {
-  width: 102px;
-  height: 124px;
-  transform: scale(0.86);
+  width: 108px;
+  height: 132px;
+  transform: scale(0.9);
   transform-origin: bottom center;
 }
 
 .character-head {
   position: absolute;
   z-index: 3;
-  top: 7px;
-  left: 38px;
-  width: 57px;
-  height: 62px;
+  top: 6px;
+  left: 39px;
+  width: 60px;
+  height: 65px;
   border: 2.5px solid var(--comic-line);
-  border-radius: 48% 48% 44% 44%;
+  border-radius: 46% 46% 42% 42%;
   background: #f2d5bd;
 }
+
+.character-ear {
+  position: absolute;
+  z-index: -1;
+  top: 31px;
+  width: 11px;
+  height: 16px;
+  border: 2px solid var(--comic-line);
+  border-radius: 50%;
+  background: #f2d5bd;
+}
+
+.character-ear.left { left: -8px; }
+.character-ear.right { right: -8px; }
 
 .character-hair {
   position: absolute;
   top: -4px;
   left: -3px;
-  width: 60px;
-  height: 29px;
+  width: 63px;
+  height: 31px;
   border: 2.5px solid var(--comic-line);
-  border-radius: 55% 55% 35% 25%;
+  border-radius: 58% 58% 28% 30%;
   background:
     radial-gradient(#fff2 1px, transparent 1px),
     #3c3935;
@@ -365,11 +562,25 @@ textarea {
   transform: rotate(-3deg);
 }
 
+.character-fringe {
+  position: absolute;
+  z-index: 2;
+  top: 16px;
+  left: 6px;
+  width: 48px;
+  height: 15px;
+  border-bottom: 2px solid var(--comic-line);
+  border-radius: 0 0 55% 45%;
+  background: #3c3935;
+  transform: rotate(-4deg);
+}
+
 .character-eye {
   position: absolute;
-  top: 34px;
+  z-index: 3;
+  top: 37px;
   width: 5px;
-  height: 5px;
+  height: 6px;
   border-radius: 50%;
   background: var(--comic-line);
 }
@@ -377,12 +588,35 @@ textarea {
 .character-eye.left { left: 15px; }
 .character-eye.right { right: 15px; }
 
+.character-nose {
+  position: absolute;
+  left: 28px;
+  top: 42px;
+  width: 5px;
+  height: 5px;
+  border-right: 1.5px solid var(--comic-line);
+  border-bottom: 1.5px solid var(--comic-line);
+  transform: rotate(18deg);
+}
+
+.character-blush {
+  position: absolute;
+  top: 47px;
+  width: 8px;
+  height: 3px;
+  border-radius: 50%;
+  background: #de9e9d80;
+}
+
+.character-blush.left { left: 9px; }
+.character-blush.right { right: 9px; }
+
 .character-mouth {
   position: absolute;
   left: 24px;
-  bottom: 9px;
-  width: 12px;
-  height: 6px;
+  bottom: 8px;
+  width: 14px;
+  height: 7px;
   border-bottom: 2px solid var(--comic-line);
   border-radius: 50%;
 }
@@ -397,10 +631,10 @@ textarea {
 .character-body {
   position: absolute;
   z-index: 2;
-  left: 26px;
+  left: 25px;
   bottom: 2px;
-  width: 82px;
-  height: 104px;
+  width: 88px;
+  height: 106px;
   border: 2.5px solid var(--comic-line);
   border-radius: 42% 42% 8px 8px;
   background:
@@ -428,53 +662,91 @@ textarea {
   transform: skew(-18deg);
 }
 
+.character-tie {
+  position: absolute;
+  z-index: 2;
+  top: 22px;
+  left: 39px;
+  width: 10px;
+  height: 24px;
+  clip-path: polygon(50% 0, 100% 25%, 72% 100%, 28% 100%, 0 25%);
+  background: var(--comic-charcoal);
+}
+
+.character-pocket {
+  position: absolute;
+  right: 14px;
+  top: 49px;
+  width: 18px;
+  height: 15px;
+  border: 1.5px solid var(--comic-line);
+  border-top: 0;
+}
+
 .character-arm {
   position: absolute;
   z-index: 4;
-  bottom: 39px;
-  width: 50px;
-  height: 16px;
+  bottom: 34px;
+  width: 48px;
+  height: 17px;
   border: 2.5px solid var(--comic-line);
   border-radius: 20px;
   background: var(--comic-blue);
 }
 
 .character-arm.left {
-  left: 2px;
-  transform: rotate(20deg);
+  left: 1px;
+  transform: rotate(24deg);
 }
 
 .character-arm.right {
-  right: 0;
-  transform: rotate(-20deg);
+  right: -1px;
+  transform: rotate(-24deg);
 }
 
 .explain .character-arm.right { transform: rotate(-58deg) translate(8px, -10px); }
 .celebrate .character-arm.left { transform: rotate(62deg) translate(-4px, -14px); }
 .celebrate .character-arm.right { transform: rotate(-62deg) translate(4px, -14px); }
 
+.character-hand {
+  position: absolute;
+  z-index: 5;
+  bottom: 32px;
+  width: 13px;
+  height: 13px;
+  border: 2px solid var(--comic-line);
+  border-radius: 50%;
+  background: #f2d5bd;
+}
+
+.character-hand.left { left: 7px; }
+.character-hand.right { right: 7px; }
+.explain .character-hand.right { right: -3px; bottom: 72px; }
+.celebrate .character-hand.left,
+.celebrate .character-hand.right { bottom: 82px; }
+
 .character-prop {
   position: absolute;
   z-index: 5;
-  left: 35px;
-  bottom: 12px;
-  width: 67px;
-  height: 46px;
+  left: 37px;
+  bottom: 6px;
+  width: 65px;
+  height: 44px;
   display: grid;
   place-items: center;
   border: 2.5px solid var(--comic-line);
   background: var(--comic-yellow);
-  font-size: 8px;
+  font-size: 9px;
   font-weight: 900;
   letter-spacing: 0.08em;
   transform: rotate(-3deg);
 }
 
 .character-prop.laptop {
-  width: 76px;
-  height: 42px;
-  left: 29px;
-  bottom: 4px;
+  width: 74px;
+  height: 40px;
+  left: 32px;
+  bottom: 2px;
   background: #d8e9f5;
   transform: perspective(80px) rotateX(-8deg);
 }
@@ -757,7 +1029,7 @@ textarea:focus {
 .tutorial-copy p {
   margin: 0;
   color: #625e58;
-  font-size: 12px;
+  font-size: 14px;
   line-height: 1.65;
 }
 
@@ -789,7 +1061,7 @@ textarea:focus {
   .student-lessons-hero,
   .activity-results-hero,
   .guide-hero {
-    padding-right: 230px;
+    padding-right: 255px;
   }
 
   .comic-cue {
@@ -813,7 +1085,7 @@ textarea:focus {
   .student-lessons-hero,
   .activity-results-hero,
   .guide-hero {
-    min-height: 135px;
+    min-height: 150px;
     padding-right: 28px;
   }
 

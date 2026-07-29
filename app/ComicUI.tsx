@@ -45,17 +45,27 @@ export function OfficeCharacter({
       aria-hidden="true"
     >
       <div className="character-head">
+        <i className="character-ear left" />
+        <i className="character-ear right" />
         <i className="character-hair" />
+        <i className="character-fringe" />
         <i className="character-eye left" />
         <i className="character-eye right" />
+        <i className="character-nose" />
+        <i className="character-blush left" />
+        <i className="character-blush right" />
         <i className="character-mouth" />
       </div>
       <div className="character-body">
         <i className="character-collar left" />
         <i className="character-collar right" />
+        <i className="character-tie" />
+        <i className="character-pocket" />
       </div>
       <i className="character-arm left" />
       <i className="character-arm right" />
+      <i className="character-hand left" />
+      <i className="character-hand right" />
       <div className={`character-prop ${prop}`}>
         {prop === "laptop" ? "BAEM" : prop === "checklist" ? "✓ ✓ ✓" : "NOTE"}
       </div>
