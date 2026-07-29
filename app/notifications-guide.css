@@ -10,6 +10,33 @@
   background: #e9efff;
 }
 
+.logout-button {
+  width: calc(100% - 10px);
+  margin: 8px 5px 0;
+  padding: 10px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border: 1px solid #e6e9ef;
+  border-radius: 8px;
+  background: white;
+  color: #737c8c;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.logout-button:hover {
+  border-color: #f0c7c0;
+  background: #fff5f3;
+  color: #bd5e50;
+}
+
+.logout-button:disabled {
+  cursor: wait;
+  opacity: 0.65;
+}
+
 .notification-center {
   position: relative;
 }

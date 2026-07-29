@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
+import { Show, SignInButton, SignUpButton, UserButton, useClerk, useUser } from "@clerk/nextjs";
 import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import TeacherLessonSettings from "./TeacherLessonSettings";
@@ -36,8 +36,10 @@ type Screen =
   | "guide";
 
 export default function Home() {
+  const { signOut } = useClerk();
   const [screen, setScreen] = useState<Screen>("login");
   const [profile, setProfile] = useState<AccountProfile | null>(null);
+  const [signingOut, setSigningOut] = useState(false);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
   const score = useMemo(() => Math.round((Object.values(answers).filter((a) => a === "know").length / Math.max(done, 1)) * 100), [answers, done]);
@@ -60,6 +62,16 @@ export default function Home() {
   const schoolLabel = isTeacher
     ? "교사 관리자"
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
+  const handleSignOut = async () => {
+    setSigningOut(true);
+    try {
+      await signOut();
+      setProfile(null);
+      setScreen("login");
+    } finally {
+      setSigningOut(false);
+    }
+  };
 
   return (
     <div className="app-shell">
@@ -90,10 +102,18 @@ export default function Home() {
             <b>도움이 필요하신가요?</b>
             <span>사용 가이드 보기 →</span>
           </button>
-          <button className="profile" onClick={() => { setProfile(null); setScreen("login"); }}>
+          <div className="profile">
             <span className="mini-avatar">{isTeacher ? "쌤" : profile.displayName.slice(0, 1)}</span>
             <span><b>{profile.displayName}</b><small>{isTeacher ? "교사 계정" : "학생 계정"}</small></span>
-            <span className="more">•••</span>
+          </div>
+          <button
+            type="button"
+            className="logout-button"
+            disabled={signingOut}
+            onClick={handleSignOut}
+          >
+            <span aria-hidden="true">↪</span>
+            {signingOut ? "로그아웃 중..." : "로그아웃"}
           </button>
         </div>
       </aside>
