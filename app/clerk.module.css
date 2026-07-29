@@ -13,4 +13,9 @@
 :global(.auth-loading){min-height:160px;display:grid;place-items:center;color:#6e7685;font-size:13px}
 :global(.login-button:disabled){opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 :global(.profile-save-error){margin:12px 0 0;color:#c75448;background:#fff0ed;border:1px solid #f1c0b8;border-radius:6px;padding:9px 10px;font-size:11px;line-height:1.45}
+:global(.profile-form){overflow-y:auto}
+:global(.student-profile-fields){display:grid;grid-template-columns:1.15fr 1fr 1fr;gap:9px}
+:global(.student-profile-fields label){min-width:0}
+:global(.student-profile-fields select){display:block;width:100%;border:1px solid #e4e7ee;border-radius:7px;padding:12px;margin-top:7px;background:#fff;color:#17202f;font-size:14px;outline:0}
+:global(.student-profile-fields select:focus){border-color:#355ac6;box-shadow:0 0 0 3px #355ac61c}
 @media(max-width:650px){:global(.clerk-floating){right:14px;bottom:14px}}

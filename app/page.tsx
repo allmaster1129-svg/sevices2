@@ -4,6 +4,8 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Show, SignInButton, SignUpButton, UserButton, useUser } from "@clerk/nextjs";
 import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
+import type { AccountProfile } from "./ClerkDatabaseSetup";
+import TeacherLessonSettings from "./TeacherLessonSettings";
 import "./settings.module.css";
 import "./clerk.module.css";
 
@@ -17,15 +19,73 @@ const students = [
 
 export default function Home() {
   const [screen, setScreen] = useState<"login" | "student" | "admin" | "settings-roster" | "settings-problems">("login");
-  const [loginRole, setLoginRole] = useState<"student" | "admin">("student");
+  const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
   const score = useMemo(() => Math.round((Object.values(answers).filter((a) => a === "know").length / Math.max(done, 1)) * 100), [answers, done]);
 
-  if (screen === "login") return <ClerkDatabaseSetup onComplete={(role) => setScreen(role)} />;
-  const isSettings = screen.startsWith("settings");
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "settings-roster" ? "학급 명단 관리" : "풀이 대상 문제 관리";
-  return <div className="app-shell"><aside className="sidebar"><div className="logo"><span>✦</span> 배움짝</div><div className="school-pill">2학년 3반 <span>⌄</span></div><div className="side-label">MENU</div><button className={screen === "admin" ? "side-link active" : "side-link"} onClick={() => setScreen("admin")}>▦ <span>학급 대시보드</span></button><button className={screen === "student" ? "side-link active" : "side-link"} onClick={() => setScreen("student")}>◌ <span>학생 화면</span></button><button className="side-link" onClick={() => setScreen("admin")}>♧ <span>짝 매칭 관리</span></button><div className="side-label settings-label">SETTINGS</div><button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 입력</span></button><button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>풀이 문제 설정</span></button><div className="sidebar-bottom"><div className="help-box"><b>도움이 필요하신가요?</b><span>사용 가이드 보기 →</span></div><button className="profile" onClick={() => setScreen("login")}><span className="mini-avatar">{isSettings || screen === "admin" ? "쌤" : "서"}</span><span><b>{isSettings || screen === "admin" ? "김선생님" : "박서연"}</b><small>{isSettings || screen === "admin" ? "교사 계정" : "학생 계정"}</small></span><span className="more">•••</span></button></div></aside><main className="dashboard"><header className="topbar"><div className="breadcrumb">배움짝 <span>/</span> {title}</div><div className="top-actions"><span>◔ 알림</span><button className="role-switch" onClick={() => setScreen(screen === "student" ? "admin" : "student")}>{screen === "student" ? "교사 화면 보기" : "학생 화면 보기"} ↗</button></div></header>{screen === "admin" ? <Admin /> : screen === "student" ? <Student answers={answers} setAnswers={setAnswers} done={done} score={score} /> : screen === "settings-roster" ? <RosterSettings /> : <ProblemSettings />}</main></div>;
+  if (screen === "login" || !profile) {
+    return (
+      <ClerkDatabaseSetup
+        onComplete={(savedProfile) => {
+          setProfile(savedProfile);
+          setScreen(
+            savedProfile.role === "admin" ? "settings-problems" : "student",
+          );
+        }}
+      />
+    );
+  }
+
+  const isTeacher = profile.role === "admin";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "settings-roster" ? "학급 명단 관리" : "수업·문항 설정";
+  const schoolLabel = isTeacher
+    ? "교사 관리자"
+    : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
+
+  return (
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="logo"><span>✦</span> 배움짝</div>
+        <div className="school-pill">{schoolLabel}<span>⌄</span></div>
+        <div className="side-label">MENU</div>
+        {isTeacher ? (
+          <>
+            <button className={screen === "admin" ? "side-link active" : "side-link"} onClick={() => setScreen("admin")}>▦ <span>학급 대시보드</span></button>
+            <button className="side-link" onClick={() => setScreen("admin")}>♧ <span>짝 매칭 관리</span></button>
+            <div className="side-label settings-label">SETTINGS</div>
+            <button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 입력</span></button>
+            <button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>수업·문항 설정</span></button>
+          </>
+        ) : (
+          <button className="side-link active" onClick={() => setScreen("student")}>◌ <span>나의 학습 화면</span></button>
+        )}
+        <div className="sidebar-bottom">
+          <div className="help-box"><b>도움이 필요하신가요?</b><span>사용 가이드 보기 →</span></div>
+          <button className="profile" onClick={() => { setProfile(null); setScreen("login"); }}>
+            <span className="mini-avatar">{isTeacher ? "쌤" : profile.displayName.slice(0, 1)}</span>
+            <span><b>{profile.displayName}</b><small>{isTeacher ? "교사 계정" : "학생 계정"}</small></span>
+            <span className="more">•••</span>
+          </button>
+        </div>
+      </aside>
+      <main className="dashboard">
+        <header className="topbar">
+          <div className="breadcrumb">배움짝 <span>/</span> {title}</div>
+          <div className="top-actions"><span>◔ 알림</span><span className="account-role-label">{isTeacher ? "교사 관리자" : "학생"}</span></div>
+        </header>
+        {screen === "admin" ? (
+          <Admin />
+        ) : screen === "student" ? (
+          <Student profile={profile} answers={answers} setAnswers={setAnswers} done={done} score={score} />
+        ) : screen === "settings-roster" ? (
+          <RosterSettings />
+        ) : (
+          <TeacherLessonSettings />
+        )}
+      </main>
+    </div>
+  );
 }
 
 function ClerkSetup({ onComplete }: { onComplete: (role: "student" | "admin") => void }) {
@@ -54,9 +114,9 @@ function Login({ role, setRole, onLogin }: { role: "student" | "admin"; setRole:
   return <main className="login-page"><div className="login-mark"><span>✦</span> 배움짝</div><div className="login-card"><div className="login-intro"><p className="overline">SMART PEER MATCHING</p><h1>함께 배우고,<br /><em>배움의 빈틈</em>을 채워요.</h1><p>우리 반 친구와 문제를 설명하고 질문하며<br />더 잘 이해하는 수학 수업을 시작해요.</p><div className="login-orb"><i /><i /><i /></div></div><div className="login-form"><h2>배움짝 시작하기</h2><p className="muted">계정 유형을 선택하고 로그인해 주세요.</p><div className="role-tabs"><button className={role === "student" ? "selected" : ""} onClick={() => setRole("student")}>학생</button><button className={role === "admin" ? "selected" : ""} onClick={() => setRole("admin")}>교사</button></div><label>{role === "student" ? "이름" : "교사 이메일"}<input placeholder={role === "student" ? "예: 박서연" : "teacher@school.kr"} defaultValue={role === "student" ? "박서연" : "teacher@school.kr"} /></label><label>{role === "student" ? "학급 코드" : "학교 코드"}<input placeholder={role === "student" ? "예: MATH-2-3" : "예: BAEM-2024"} defaultValue={role === "student" ? "MATH-2-3" : "BAEM-2024"} /></label><button className="login-button" onClick={onLogin}>{role === "student" ? "내 배움짝 확인하기" : "학급 대시보드 열기"} <span>→</span></button><p className="safe">🔒 수업 내에서만 안전하게 사용돼요.</p></div></div><p className="login-footer">배움짝은 학생 간 협력 학습을 돕는 수업용 서비스입니다.</p></main>;
 }
 
-function Student({ answers, setAnswers, done, score }: { answers: Record<number, "know" | "need">; setAnswers: Dispatch<SetStateAction<Record<number, "know" | "need">>>; done: number; score: number }) {
+function Student({ profile, answers, setAnswers, done, score }: { profile: AccountProfile; answers: Record<number, "know" | "need">; setAnswers: Dispatch<SetStateAction<Record<number, "know" | "need">>>; done: number; score: number }) {
   const matched = students[0];
-  return <><section className="welcome"><div><p className="overline">TODAY'S CHECK-IN</p><h1>박서연 님, 지금 상태를 알려주세요</h1><p>문제마다 하나를 선택하면 나에게 맞는 배움짝을 추천해 드려요.</p></div><div className="completion"><span>응답 현황 <b>{done} / 12 완료</b></span><div><i style={{ width: `${(done / 12) * 100}%` }} /></div></div></section><div className="student-grid"><section className="diagnostic panel"><div className="panel-head"><div><h2>문제마다 하나를 선택하세요</h2><p>초록은 “알고 있어요”, 빨강은 “잘 모르겠어요”를 뜻해요.</p></div><span className="score-badge">현재 이해도 <b>{score}%</b></span></div><div className="question-grid">{questions.map((q) => <div className="question" key={q}><b>{q}번 문제</b><button className={answers[q] === "know" ? "know on" : "know"} onClick={() => setAnswers((v) => ({ ...v, [q]: "know" }))}>✓ 알고 있어요</button><button className={answers[q] === "need" ? "need on" : "need"} onClick={() => setAnswers((v) => ({ ...v, [q]: "need" }))}>? 잘 모르겠어요</button></div>)}</div><div className="diagnostic-foot"><button className="primary">응답 저장하기</button><span>◷ 마지막 저장 1분 전</span></div></section><aside className="match-card"><div className="match-title">나의 배움짝 <span>✦</span></div><div className="match-people"><div><div className="person blue">민</div><b>김민준</b><small>질문하는 짝</small></div><strong>↔</strong><div><div className="person green">서</div><b>박서연</b><small>설명하는 짝</small></div></div><div className="role-note"><span>나의 역할</span><b>친구에게 설명해요</b><span>짝의 역할</span><b>모르는 것을 질문해요</b></div><div className="together"><b>함께 풀 문제</b><div><span>4번</span><span>9번</span><span>11번</span></div><p>서로 알고 있는 부분을 묻고<br />설명하며 해결해 보세요.</p></div><button className="primary full">짝 활동 시작하기 →</button></aside></div></>;
+  return <><section className="welcome"><div><p className="overline">TODAY'S CHECK-IN</p><h1>{profile.displayName} 님, 지금 상태를 알려주세요</h1><p>{profile.grade}학년 {profile.classNumber}반 {profile.studentNumber}번 · 문제마다 하나를 선택하면 나에게 맞는 배움짝을 추천해 드려요.</p></div><div className="completion"><span>응답 현황 <b>{done} / 12 완료</b></span><div><i style={{ width: `${(done / 12) * 100}%` }} /></div></div></section><div className="student-grid"><section className="diagnostic panel"><div className="panel-head"><div><h2>문제마다 하나를 선택하세요</h2><p>초록은 “알고 있어요”, 빨강은 “잘 모르겠어요”를 뜻해요.</p></div><span className="score-badge">현재 이해도 <b>{score}%</b></span></div><div className="question-grid">{questions.map((q) => <div className="question" key={q}><b>{q}번 문제</b><button className={answers[q] === "know" ? "know on" : "know"} onClick={() => setAnswers((v) => ({ ...v, [q]: "know" }))}>✓ 알고 있어요</button><button className={answers[q] === "need" ? "need on" : "need"} onClick={() => setAnswers((v) => ({ ...v, [q]: "need" }))}>? 잘 모르겠어요</button></div>)}</div><div className="diagnostic-foot"><button className="primary">응답 저장하기</button><span>◷ 마지막 저장 1분 전</span></div></section><aside className="match-card"><div className="match-title">나의 배움짝 <span>✦</span></div><div className="match-people"><div><div className="person blue">민</div><b>김민준</b><small>질문하는 짝</small></div><strong>↔</strong><div><div className="person green">{profile.displayName.slice(0, 1)}</div><b>{profile.displayName}</b><small>설명하는 짝</small></div></div><div className="role-note"><span>나의 역할</span><b>친구에게 설명해요</b><span>짝의 역할</span><b>모르는 것을 질문해요</b></div><div className="together"><b>함께 풀 문제</b><div><span>4번</span><span>9번</span><span>11번</span></div><p>서로 알고 있는 부분을 묻고<br />설명하며 해결해 보세요.</p></div><button className="primary full">짝 활동 시작하기 →</button></aside></div></>;
 }
 
 function RosterSettings() {

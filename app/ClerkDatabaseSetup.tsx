@@ -8,49 +8,149 @@ import {
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 
-type AccountRole = "student" | "admin";
+export type AccountRole = "student" | "admin";
+
+export type AccountProfile = {
+  role: AccountRole;
+  displayName: string;
+  grade: number | null;
+  classNumber: number | null;
+  studentNumber: number | null;
+};
 
 type SavedProfile = {
   role?: AccountRole;
-  classCode?: string;
   profileName?: string;
+  grade?: number;
+  classNumber?: number;
+  studentNumber?: number;
 };
+
+type ApiProfile = {
+  role: AccountRole;
+  display_name: string;
+  grade: number | null;
+  class_number: number | null;
+  student_number: number | null;
+};
+
+function normalizeProfile(profile: ApiProfile): AccountProfile {
+  return {
+    role: profile.role,
+    displayName: profile.display_name,
+    grade: profile.grade,
+    classNumber: profile.class_number,
+    studentNumber: profile.student_number,
+  };
+}
 
 export default function ClerkDatabaseSetup({
   onComplete,
 }: {
-  onComplete: (role: AccountRole) => void;
+  onComplete: (profile: AccountProfile) => void;
 }) {
   const { isLoaded, isSignedIn, user } = useUser();
   const [role, setRole] = useState<AccountRole>("student");
   const [name, setName] = useState("");
-  const [classCode, setClassCode] = useState("");
+  const [grade, setGrade] = useState(1);
+  const [classNumber, setClassNumber] = useState(1);
+  const [studentNumber, setStudentNumber] = useState(1);
+  const [checkingProfile, setCheckingProfile] = useState(false);
+  const [profileChecked, setProfileChecked] = useState(false);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState("");
 
   useEffect(() => {
-    if (!user) return;
-    const profile = user.unsafeMetadata as SavedProfile;
-    if (profile.role) setRole(profile.role);
-    setName(profile.profileName ?? user.firstName ?? "");
-    setClassCode(profile.classCode ?? "");
-  }, [user]);
+    if (!user) {
+      setProfileChecked(false);
+      return;
+    }
+
+    const saved = user.unsafeMetadata as SavedProfile;
+    if (saved.role) setRole(saved.role);
+    setName(saved.profileName ?? user.firstName ?? "");
+    setGrade(saved.grade ?? 1);
+    setClassNumber(saved.classNumber ?? 1);
+    setStudentNumber(saved.studentNumber ?? 1);
+
+    let active = true;
+    setCheckingProfile(true);
+
+    fetch("/api/profile", { cache: "no-store" })
+      .then(async (response) => {
+        if (response.status === 404) return null;
+        const result = (await response.json()) as {
+          profile?: ApiProfile;
+          error?: string;
+        };
+        if (!response.ok) {
+          throw new Error(result.error ?? "프로필을 확인하지 못했습니다.");
+        }
+        return result.profile ?? null;
+      })
+      .then((profile) => {
+        if (!active || !profile) return;
+        const normalized = normalizeProfile(profile);
+        const profileIsComplete =
+          normalized.role === "admin" ||
+          Boolean(
+            normalized.grade &&
+              normalized.classNumber &&
+              normalized.studentNumber,
+          );
+        if (profileIsComplete) {
+          onComplete(normalized);
+        } else {
+          setRole(normalized.role);
+          setName(normalized.displayName);
+        }
+      })
+      .catch((error) => {
+        if (active) {
+          setSaveError(
+            error instanceof Error
+              ? error.message
+              : "프로필을 확인하는 중 오류가 발생했습니다.",
+          );
+        }
+      })
+      .finally(() => {
+        if (active) {
+          setCheckingProfile(false);
+          setProfileChecked(true);
+        }
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [onComplete, user]);
 
   async function saveProfile() {
-    if (!user || !name.trim() || !classCode.trim()) return;
+    const studentFieldsValid =
+      role === "admin" ||
+      (grade >= 1 &&
+        grade <= 3 &&
+        classNumber >= 1 &&
+        studentNumber >= 1);
+    if (!user || !name.trim() || !studentFieldsValid) return;
 
     setSaving(true);
     setSaveError("");
 
     try {
+      const metadata = {
+        ...user.unsafeMetadata,
+        role,
+        profileName: name.trim(),
+        grade: role === "student" ? grade : null,
+        classNumber: role === "student" ? classNumber : null,
+        studentNumber: role === "student" ? studentNumber : null,
+      };
+
       await user.update({
         firstName: name.trim(),
-        unsafeMetadata: {
-          ...user.unsafeMetadata,
-          role,
-          profileName: name.trim(),
-          classCode: classCode.trim(),
-        },
+        unsafeMetadata: metadata,
       });
 
       const response = await fetch("/api/profile", {
@@ -59,16 +159,21 @@ export default function ClerkDatabaseSetup({
         body: JSON.stringify({
           role,
           displayName: name.trim(),
-          classCode: classCode.trim(),
+          grade: role === "student" ? grade : null,
+          classNumber: role === "student" ? classNumber : null,
+          studentNumber: role === "student" ? studentNumber : null,
         }),
       });
+      const result = (await response.json()) as {
+        profile?: ApiProfile;
+        error?: string;
+      };
 
-      if (!response.ok) {
-        const result = (await response.json()) as { error?: string };
+      if (!response.ok || !result.profile) {
         throw new Error(result.error ?? "Supabase 프로필 저장에 실패했습니다.");
       }
 
-      onComplete(role);
+      onComplete(normalizeProfile(result.profile));
     } catch (error) {
       setSaveError(
         error instanceof Error
@@ -80,11 +185,11 @@ export default function ClerkDatabaseSetup({
     }
   }
 
-  if (!isLoaded) {
+  if (!isLoaded || (isSignedIn && user && (!profileChecked || checkingProfile))) {
     return (
       <main className="login-page">
         <div className="login-card auth-loading">
-          <p>인증 정보를 확인하고 있어요...</p>
+          <p>인증 정보와 저장된 프로필을 확인하고 있어요...</p>
         </div>
       </main>
     );
@@ -146,23 +251,23 @@ export default function ClerkDatabaseSetup({
         <div className="login-intro">
           <p className="overline">PROFILE SETUP</p>
           <h1>
-            인증이 완료됐어요.
+            회원가입이 완료됐어요.
             <br />
-            <em>내 배움짝</em> 정보를 알려주세요.
+            <em>사용자 정보</em>를 알려주세요.
           </h1>
           <p>
-            입력 정보는 Clerk 계정과 Supabase DB에 저장되어
+            한 번 저장하면 다음 로그인부터 역할에 맞는 화면으로
             <br />
-            다음 로그인부터 다시 사용할 수 있어요.
+            자동 이동합니다.
           </p>
           <div className="account-chip">
             <UserButton />
             <span>{user.primaryEmailAddress?.emailAddress}</span>
           </div>
         </div>
-        <div className="login-form">
-          <h2>나에게 맞는 화면 설정</h2>
-          <p className="muted">학생 또는 교사 계정에 맞게 입력해 주세요.</p>
+        <div className="login-form profile-form">
+          <h2>교사·학생 계정 설정</h2>
+          <p className="muted">계정 유형과 기본 정보를 입력해 주세요.</p>
           <div className="role-tabs">
             <button
               className={role === "student" ? "selected" : ""}
@@ -182,31 +287,63 @@ export default function ClerkDatabaseSetup({
             <input
               value={name}
               onChange={(event) => setName(event.target.value)}
-              placeholder="예: 박서연"
+              placeholder={role === "student" ? "예: 박서연" : "예: 김선생님"}
             />
           </label>
-          <label>
-            {role === "student" ? "학급 코드" : "담당 학급 코드"}
-            <input
-              value={classCode}
-              onChange={(event) => setClassCode(event.target.value)}
-              placeholder="예: MATH-2-3"
-            />
-          </label>
+          {role === "student" && (
+            <div className="student-profile-fields">
+              <label>
+                학년
+                <select
+                  value={grade}
+                  onChange={(event) => setGrade(Number(event.target.value))}
+                >
+                  <option value={1}>1학년</option>
+                  <option value={2}>2학년</option>
+                  <option value={3}>3학년</option>
+                </select>
+              </label>
+              <label>
+                반
+                <input
+                  type="number"
+                  min={1}
+                  max={50}
+                  value={classNumber}
+                  onChange={(event) => setClassNumber(Number(event.target.value))}
+                />
+              </label>
+              <label>
+                번호
+                <input
+                  type="number"
+                  min={1}
+                  max={100}
+                  value={studentNumber}
+                  onChange={(event) => setStudentNumber(Number(event.target.value))}
+                />
+              </label>
+            </div>
+          )}
           {saveError && <p className="profile-save-error">{saveError}</p>}
           <button
             className="login-button"
-            disabled={saving || !name.trim() || !classCode.trim()}
+            disabled={
+              saving ||
+              !name.trim() ||
+              (role === "student" &&
+                (!grade || !classNumber || !studentNumber))
+            }
             onClick={saveProfile}
           >
             {saving
               ? "저장 중..."
               : role === "student"
-                ? "내 배움짝 확인하기"
-                : "학급 대시보드 열기"}
+                ? "학생 화면 시작하기"
+                : "관리자 설정 열기"}
             <span>→</span>
           </button>
-          <p className="safe">✓ Clerk와 Supabase에 함께 저장됩니다.</p>
+          <p className="safe">✓ 계정 정보는 Supabase에 안전하게 저장됩니다.</p>
         </div>
       </div>
     </main>
