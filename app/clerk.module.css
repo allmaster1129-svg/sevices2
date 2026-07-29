@@ -5,4 +5,11 @@
 :global(.clerk-primary:hover){background:#2748a8}
 :global(.clerk-secondary:hover){border-color:#355ac6}
 :global(.clerk-signed){display:flex;align-items:center;gap:9px}
+:global(.clerk-login-stack){display:flex;flex-direction:column;gap:10px;margin-top:30px}
+:global(.clerk-wide){width:100%;padding:13px 16px}
+:global(.account-chip){display:flex;align-items:center;gap:10px;margin-top:42px;font-size:12px;color:#68748c}
+:global(.profile-setup-card) :global(.login-intro){display:flex;flex-direction:column}
+:global(.profile-setup-card) :global(.login-form){padding-top:58px;padding-bottom:58px}
+:global(.auth-loading){min-height:160px;display:grid;place-items:center;color:#6e7685;font-size:13px}
+:global(.login-button:disabled){opacity:.5;cursor:not-allowed;transform:none;box-shadow:none}
 @media(max-width:650px){:global(.clerk-floating){right:14px;bottom:14px}}
