@@ -1093,6 +1093,21 @@ textarea:focus {
     display: none;
   }
 
+  .settings-hero > .settings-count,
+  .student-lessons-hero > .student-class-badge,
+  .activity-results-hero > span:not(.comic-cue),
+  .guide-hero > .guide-role,
+  .dashboard-hero > .dashboard-lesson-switch,
+  .matching-hero > .rematch-button {
+    position: static;
+    width: fit-content;
+    margin-top: 18px;
+  }
+
+  .dashboard-hero > .dashboard-lesson-switch {
+    width: min(100%, 420px);
+  }
+
   .login-card {
     grid-template-columns: 1fr 1fr;
   }
