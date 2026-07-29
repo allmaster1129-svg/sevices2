@@ -8,6 +8,7 @@ import type { AccountProfile } from "./ClerkDatabaseSetup";
 import TeacherLessonSettings from "./TeacherLessonSettings";
 import StudentLessonDashboard from "./StudentLessonDashboard";
 import TeacherClassResults from "./TeacherClassResults";
+import TeacherPairMatching from "./TeacherPairMatching";
 import "./settings.module.css";
 import "./clerk.module.css";
 
@@ -20,7 +21,7 @@ const students = [
 ];
 
 export default function Home() {
-  const [screen, setScreen] = useState<"login" | "student" | "admin" | "settings-roster" | "settings-problems">("login");
+  const [screen, setScreen] = useState<"login" | "student" | "admin" | "matching" | "settings-roster" | "settings-problems">("login");
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
@@ -40,7 +41,7 @@ export default function Home() {
   }
 
   const isTeacher = profile.role === "admin";
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "settings-roster" ? "학급 명단 확인" : "수업·문항 설정";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "학생 화면" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : "수업·문항 설정";
   const schoolLabel = isTeacher
     ? "교사 관리자"
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
@@ -54,7 +55,7 @@ export default function Home() {
         {isTeacher ? (
           <>
             <button className={screen === "admin" ? "side-link active" : "side-link"} onClick={() => setScreen("admin")}>▦ <span>학급 대시보드</span></button>
-            <button className="side-link" onClick={() => setScreen("admin")}>♧ <span>짝 매칭 관리</span></button>
+            <button className={screen === "matching" ? "side-link active" : "side-link"} onClick={() => setScreen("matching")}>♧ <span>짝 매칭 관리</span></button>
             <div className="side-label settings-label">SETTINGS</div>
             <button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 확인</span></button>
             <button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>수업·문항 설정</span></button>
@@ -80,6 +81,8 @@ export default function Home() {
           <Admin />
         ) : screen === "student" ? (
           <StudentLessonDashboard profile={profile} />
+        ) : screen === "matching" ? (
+          <TeacherPairMatching />
         ) : screen === "settings-roster" ? (
           <TeacherClassResults />
         ) : (
