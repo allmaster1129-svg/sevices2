@@ -1,5 +1,7 @@
 "use client";
 
+import { ComicCue, TutorialStep } from "./ComicUI";
+
 type GuideStep = {
   number: string;
   title: string;
@@ -74,17 +76,21 @@ export default function UsageGuide({ isTeacher }: { isTeacher: boolean }) {
           </p>
         </div>
         <span className="guide-role">{isTeacher ? "교사 관리자" : "학생"}</span>
+        <ComicCue label="HOW TO" accent="yellow" mood="explain" prop="note">
+          네 컷을 순서대로 따라오면 준비 완료!
+        </ComicCue>
       </div>
 
       <div className="guide-steps">
-        {steps.map((step) => (
-          <article key={step.number}>
-            <span>{step.number}</span>
-            <div>
-              <h2>{step.title}</h2>
-              <p>{step.description}</p>
-            </div>
-          </article>
+        {steps.map((step, index) => (
+          <TutorialStep
+            key={step.number}
+            number={step.number}
+            title={step.title}
+            accent={(["blue", "yellow", "pink", "mint"] as const)[index]}
+          >
+            {step.description}
+          </TutorialStep>
         ))}
       </div>
 

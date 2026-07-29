@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ComicCue } from "./ComicUI";
 
 type QuestionDraft = {
   number: number;
@@ -157,6 +158,14 @@ export default function TeacherLessonSettings({
         <span className="settings-count">
           저장된 수업 <b>{lessons.length}개</b>
         </span>
+        <ComicCue
+          label="TEACHER TIP"
+          accent="yellow"
+          mood="explain"
+          prop="note"
+        >
+          학급과 날짜를 적고, 학생이 볼 문항을 차례로 작성하세요.
+        </ComicCue>
       </div>
 
       {!databaseSynced && (

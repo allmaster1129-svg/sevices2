@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ComicCue } from "./ComicUI";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -315,6 +316,14 @@ export default function TeacherDashboard() {
             ))}
           </select>
         </label>
+        <ComicCue
+          label="TODAY'S REPORT"
+          accent="blue"
+          mood="explain"
+          prop="checklist"
+        >
+          책상 위 보고서처럼 수업의 변화를 한눈에 살펴보세요.
+        </ComicCue>
       </div>
 
       <div className="dashboard-stat-grid">

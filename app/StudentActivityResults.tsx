@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
+import { ComicCue } from "./ComicUI";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -165,6 +166,14 @@ export default function StudentActivityResults({
         <span>
           활동 결과 <b>{lessons.filter((lesson) => lesson.post_activity_response).length}개 저장</b>
         </span>
+        <ComicCue
+          label="FINAL CHECK"
+          accent="mint"
+          mood="celebrate"
+          prop="checklist"
+        >
+          새롭게 해결한 문제를 체크하고 변화를 기록해요!
+        </ComicCue>
       </div>
 
       {loading ? (

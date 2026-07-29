@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ComicCue } from "./ComicUI";
 
 type Lesson = {
   id: string;
@@ -198,6 +199,9 @@ export default function TeacherPairMatching() {
         >
           {matching ? "매칭 중..." : "↻ 무작위로 다시 매칭"}
         </button>
+        <ComicCue label="PAIR MISSION" accent="mint" mood="cheer" prop="note">
+          서로 설명해 줄 문제가 많은 친구부터 연결해요!
+        </ComicCue>
       </div>
 
       <div className="panel matching-filters">

@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
+import { ComicCue } from "./ComicUI";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -161,6 +162,9 @@ export default function StudentLessonDashboard({
           {profile.grade}학년 {profile.classNumber}반
           <b>{lessons.length}개 수업</b>
         </span>
+        <ComicCue label="MISSION 01" accent="blue" mood="explain" prop="note">
+          수업을 고르고 지금 풀 수 있는 문제를 체크해요.
+        </ComicCue>
       </div>
 
       {loading ? (

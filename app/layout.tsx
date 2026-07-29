@@ -9,13 +9,13 @@ export const metadata: Metadata = {
   openGraph: {
     title: "배움짝 · 학생 맞춤 학습과 교사 수업 설정",
     description: "학생은 역할에 맞는 학습 화면으로, 교사는 수업과 문항 설정 화면으로 바로 시작합니다.",
-    images: [{ url: "/og.png", alt: "배움짝 학생 맞춤 학습과 교사 수업 설정" }],
+    images: [{ url: "/og-manga.png", alt: "만화로 안내하는 배움짝 협력 학습" }],
   },
   twitter: {
     card: "summary_large_image",
     title: "배움짝 · 학생 맞춤 학습과 교사 수업 설정",
     description: "Clerk 인증과 Supabase 저장을 사용하는 중학생 협력 학습 서비스",
-    images: ["/og.png"],
+    images: ["/og-manga.png"],
   },
 };
 

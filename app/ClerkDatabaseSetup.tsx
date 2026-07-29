@@ -7,6 +7,7 @@ import {
   useUser,
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
+import { ComicBubble, OfficeCharacter } from "./ComicUI";
 
 export type AccountRole = "student" | "admin";
 
@@ -237,10 +238,12 @@ export default function ClerkDatabaseSetup({
               <br />
               학급과 학습 정보를 안전하게 저장해요.
             </p>
-            <div className="login-orb">
-              <i />
-              <i />
-              <i />
+            <div className="login-comic-scene" aria-hidden="true">
+              <ComicBubble accent="yellow">
+                오늘의 문제, 함께 해결해 볼까요?
+              </ComicBubble>
+              <OfficeCharacter mood="cheer" prop="laptop" />
+              <div className="comic-desk" />
             </div>
           </div>
           <div className="login-form">
@@ -286,6 +289,13 @@ export default function ClerkDatabaseSetup({
           <div className="account-chip">
             <UserButton />
             <span>{user.primaryEmailAddress?.emailAddress}</span>
+          </div>
+          <div className="login-comic-scene" aria-hidden="true">
+            <ComicBubble accent="mint">
+              역할과 학급 정보를 한 번만 알려주세요!
+            </ComicBubble>
+            <OfficeCharacter mood="explain" prop="note" />
+            <div className="comic-desk" />
           </div>
         </div>
         <div className="login-form profile-form">

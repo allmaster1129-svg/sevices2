@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { ComicCue } from "./ComicUI";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -208,6 +209,14 @@ export default function TeacherClassResults() {
         <span className="settings-count">
           담당 학급 <b>{classes.length}개</b>
         </span>
+        <ComicCue
+          label="SURVEY FILE"
+          accent="pink"
+          mood="think"
+          prop="checklist"
+        >
+          미응답 학생과 어려운 문항을 한 장의 기록표에서 확인해요.
+        </ComicCue>
       </div>
 
       <div className="panel class-results-filters">

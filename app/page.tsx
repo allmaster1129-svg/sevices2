@@ -16,6 +16,7 @@ import UsageGuide from "./UsageGuide";
 import "./settings.module.css";
 import "./clerk.module.css";
 import "./notifications-guide.css";
+import "./manga-theme.css";
 
 const questions = Array.from({ length: 12 }, (_, i) => i + 1);
 const students = [
