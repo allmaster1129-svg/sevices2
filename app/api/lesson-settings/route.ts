@@ -18,6 +18,19 @@ type LessonInput = {
   questions?: QuestionInput[];
 };
 
+function readableSupabaseError(message: string) {
+  const normalized = message.toLowerCase();
+  if (
+    normalized.includes("no suitable key") ||
+    normalized.includes("wrong key type") ||
+    normalized.includes("invalid jwt") ||
+    normalized.includes("jwk")
+  ) {
+    return "Supabase 인증 연결이 아직 완료되지 않았습니다. Supabase Third-Party Auth에 Clerk를 등록하거나 서버에 SUPABASE_SECRET_KEY를 설정해 주세요.";
+  }
+  return message;
+}
+
 async function requireTeacher() {
   const { userId } = await auth();
   if (!userId) return { error: "인증이 필요합니다.", status: 401 } as const;
@@ -29,7 +42,12 @@ async function requireTeacher() {
     .eq("user_id", userId)
     .maybeSingle();
 
-  if (error) return { error: error.message, status: 500 } as const;
+  if (error) {
+    return {
+      error: readableSupabaseError(error.message),
+      status: 503,
+    } as const;
+  }
   if (data?.role !== "admin") {
     return { error: "교사 계정만 수업을 설정할 수 있습니다.", status: 403 } as const;
   }
@@ -57,7 +75,10 @@ export async function GET() {
     .limit(20);
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: readableSupabaseError(error.message) },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ lessons: data ?? [] });
@@ -126,7 +147,10 @@ export async function POST(request: Request) {
     .single();
 
   if (error) {
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: readableSupabaseError(error.message) },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json({ lesson: data }, { status: 201 });

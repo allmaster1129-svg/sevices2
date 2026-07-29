@@ -16,6 +16,8 @@ export type AccountProfile = {
   grade: number | null;
   classNumber: number | null;
   studentNumber: number | null;
+  databaseSynced: boolean;
+  syncWarning?: string;
 };
 
 type SavedProfile = {
@@ -34,13 +36,19 @@ type ApiProfile = {
   student_number: number | null;
 };
 
-function normalizeProfile(profile: ApiProfile): AccountProfile {
+function normalizeProfile(
+  profile: ApiProfile,
+  databaseSynced = true,
+  syncWarning?: string,
+): AccountProfile {
   return {
     role: profile.role,
     displayName: profile.display_name,
     grade: profile.grade,
     classNumber: profile.class_number,
     studentNumber: profile.student_number,
+    databaseSynced,
+    syncWarning,
   };
 }
 
@@ -82,27 +90,34 @@ export default function ClerkDatabaseSetup({
         const result = (await response.json()) as {
           profile?: ApiProfile;
           error?: string;
+          databaseSynced?: boolean;
+          syncWarning?: string;
         };
         if (!response.ok) {
           throw new Error(result.error ?? "프로필을 확인하지 못했습니다.");
         }
-        return result.profile ?? null;
+        return result.profile
+          ? normalizeProfile(
+              result.profile,
+              result.databaseSynced ?? true,
+              result.syncWarning,
+            )
+          : null;
       })
       .then((profile) => {
         if (!active || !profile) return;
-        const normalized = normalizeProfile(profile);
         const profileIsComplete =
-          normalized.role === "admin" ||
+          profile.role === "admin" ||
           Boolean(
-            normalized.grade &&
-              normalized.classNumber &&
-              normalized.studentNumber,
+            profile.grade &&
+              profile.classNumber &&
+              profile.studentNumber,
           );
         if (profileIsComplete) {
-          onComplete(normalized);
+          onComplete(profile);
         } else {
-          setRole(normalized.role);
-          setName(normalized.displayName);
+          setRole(profile.role);
+          setName(profile.displayName);
         }
       })
       .catch((error) => {
@@ -167,13 +182,21 @@ export default function ClerkDatabaseSetup({
       const result = (await response.json()) as {
         profile?: ApiProfile;
         error?: string;
+        databaseSynced?: boolean;
+        syncWarning?: string;
       };
 
       if (!response.ok || !result.profile) {
         throw new Error(result.error ?? "Supabase 프로필 저장에 실패했습니다.");
       }
 
-      onComplete(normalizeProfile(result.profile));
+      onComplete(
+        normalizeProfile(
+          result.profile,
+          result.databaseSynced ?? true,
+          result.syncWarning,
+        ),
+      );
     } catch (error) {
       setSaveError(
         error instanceof Error

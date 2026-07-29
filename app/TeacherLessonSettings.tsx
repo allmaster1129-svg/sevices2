@@ -26,7 +26,13 @@ function makeQuestion(number: number): QuestionDraft {
   return { number, title: "", content: "" };
 }
 
-export default function TeacherLessonSettings() {
+export default function TeacherLessonSettings({
+  databaseSynced,
+  syncWarning,
+}: {
+  databaseSynced: boolean;
+  syncWarning?: string;
+}) {
   const [grade, setGrade] = useState(2);
   const [classNumber, setClassNumber] = useState(3);
   const [learningDate, setLearningDate] = useState(today());
@@ -152,6 +158,16 @@ export default function TeacherLessonSettings() {
           저장된 수업 <b>{lessons.length}개</b>
         </span>
       </div>
+
+      {!databaseSynced && (
+        <div className="database-sync-warning" role="status">
+          <b>관리자 화면은 열렸지만 Supabase 동기화 설정이 필요합니다.</b>
+          <span>
+            {syncWarning ??
+              "Supabase Third-Party Auth 또는 서버 Secret Key를 설정해 주세요."}
+          </span>
+        </div>
+      )}
 
       <div className="lesson-layout">
         <section className="panel lesson-form-card">

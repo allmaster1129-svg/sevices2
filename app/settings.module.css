@@ -39,6 +39,9 @@
 :global(.preview-problems){display:flex;flex-direction:column;gap:7px;margin-top:17px}
 :global(.preview-problems span){background:white;border:1px solid #dfe6f5;border-radius:6px;padding:8px 10px;font-size:11px;color:#556070}
 :global(.lesson-layout){display:grid;grid-template-columns:minmax(0,1fr) 280px;gap:18px;align-items:start}
+:global(.database-sync-warning){display:flex;flex-direction:column;gap:5px;margin:-10px 0 18px;border:1px solid #f0c47c;background:#fff8e8;color:#72501c;border-radius:9px;padding:13px 15px}
+:global(.database-sync-warning b){font-size:12px}
+:global(.database-sync-warning span){font-size:10px;line-height:1.55;color:#8a672f}
 :global(.lesson-form-card){padding:26px}
 :global(.teacher-only-badge){font-size:10px;font-weight:700;color:#267c58;background:#e4f7ed;border-radius:999px;padding:6px 9px;white-space:nowrap}
 :global(.lesson-meta-grid){display:grid;grid-template-columns:repeat(3,1fr);gap:10px 14px;margin-top:24px}

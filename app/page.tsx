@@ -81,7 +81,10 @@ export default function Home() {
         ) : screen === "settings-roster" ? (
           <RosterSettings />
         ) : (
-          <TeacherLessonSettings />
+          <TeacherLessonSettings
+            databaseSynced={profile.databaseSynced}
+            syncWarning={profile.syncWarning}
+          />
         )}
       </main>
     </div>
