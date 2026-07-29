@@ -539,6 +539,25 @@ textarea:focus {
   overflow: visible;
 }
 
+.clerk-login-stack {
+  display: grid !important;
+  gap: 10px;
+  width: 100%;
+  margin-top: 26px;
+}
+
+.clerk-login-stack > * {
+  display: block;
+  width: 100%;
+}
+
+.clerk-login-stack .clerk-wide {
+  display: block !important;
+  width: 100% !important;
+  min-height: 44px;
+  padding: 11px 14px !important;
+}
+
 .login-intro {
   border-right: 2px solid var(--comic-line);
   background:
