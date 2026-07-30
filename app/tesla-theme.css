@@ -1160,6 +1160,233 @@ label,
   color: #171a20;
 }
 
+.student-management-page {
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 32px 50px;
+  color: #171a20;
+}
+
+.student-management-hero {
+  margin-left: -32px;
+  margin-right: -32px;
+}
+
+.student-management-toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 24px;
+  margin-bottom: 18px;
+  padding: 22px 24px;
+}
+
+.student-management-toolbar label {
+  width: min(360px, 100%);
+  color: #30353b;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.student-management-toolbar select,
+.student-management-list article.editing select {
+  width: 100%;
+  min-height: 48px;
+  margin-top: 8px;
+  border: 1px solid #b8bec7;
+  border-radius: 4px;
+  background: #fff;
+  color: #171a20;
+  padding: 0 12px;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.student-management-toolbar > div {
+  text-align: right;
+}
+
+.student-management-toolbar > div span,
+.student-management-toolbar > div b {
+  display: block;
+}
+
+.student-management-toolbar > div span {
+  color: #4a5057;
+  font-size: 13px;
+}
+
+.student-management-toolbar > div b {
+  margin-top: 4px;
+  color: #111318;
+  font-size: 25px;
+}
+
+.student-management-card {
+  padding: 0;
+  overflow: hidden;
+}
+
+.student-management-heading,
+.student-management-list article {
+  display: grid;
+  grid-template-columns: 90px minmax(180px, 1.3fr) minmax(160px, 1fr) 110px;
+  gap: 16px;
+  align-items: center;
+}
+
+.student-management-heading {
+  padding: 15px 24px;
+  background: #fff;
+  color: #3d434a;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.student-management-list article {
+  min-height: 78px;
+  padding: 14px 24px;
+  border-top: 1px solid #d7dadd;
+  background: #f4f4f4;
+}
+
+.student-management-list article:nth-child(even) {
+  background: #fff;
+}
+
+.student-management-list .student-number {
+  color: #174ea6;
+  font-size: 15px;
+}
+
+.student-identity {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.student-identity i {
+  width: 38px;
+  height: 38px;
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  background: #dce7f8;
+  color: #174ea6;
+  font-size: 15px;
+  font-style: normal;
+  font-weight: 700;
+}
+
+.student-identity strong,
+.student-management-list article > span {
+  color: #171a20;
+  font-size: 15px;
+  font-weight: 600;
+}
+
+.student-management-list article.editing {
+  grid-template-columns: minmax(170px, 1fr) minmax(170px, 1fr) 120px auto;
+  align-items: end;
+  background: #edf3fb;
+}
+
+.student-management-list article.editing label {
+  margin: 0;
+  color: #30353b;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+.student-management-list article.editing input {
+  min-height: 48px;
+  margin-top: 8px;
+  border-color: #b8bec7;
+  background: #fff;
+  color: #171a20;
+  font-size: 15px;
+}
+
+.student-edit-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.student-edit-error {
+  grid-column: 1 / -1;
+  margin: 0;
+  color: #a83228;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.student-management-empty {
+  padding: 48px 24px;
+  color: #41474e;
+  text-align: center;
+  font-size: 15px;
+  line-height: 1.6;
+}
+
+.student-management-empty h2 {
+  color: #171a20;
+  font-size: 23px;
+}
+
+@media (max-width: 800px) {
+  .student-management-heading {
+    display: none;
+  }
+
+  .student-management-list article,
+  .student-management-list article.editing {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .student-management-list article > button,
+  .student-edit-actions {
+    justify-self: stretch;
+  }
+
+  .student-management-list article > button {
+    width: 100%;
+  }
+}
+
+@media (max-width: 650px) {
+  .student-management-page {
+    padding: 0 18px 40px;
+  }
+
+  .student-management-hero {
+    margin-left: -18px;
+    margin-right: -18px;
+  }
+
+  .student-management-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-management-toolbar > div {
+    text-align: left;
+  }
+
+  .student-management-list article,
+  .student-management-list article.editing {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .student-edit-actions {
+    width: 100%;
+  }
+
+  .student-edit-actions button {
+    flex: 1;
+  }
+}
+
 .teacher-dashboard-page .dashboard-hero h1 {
   color: #111318;
   font-size: clamp(36px, 4vw, 46px);

@@ -15,6 +15,7 @@ import NotificationCenter from "./NotificationCenter";
 import UsageGuide from "./UsageGuide";
 import StudentProfileEditor from "./StudentProfileEditor";
 import TeacherProfileEditor from "./TeacherProfileEditor";
+import TeacherStudentManagement from "./TeacherStudentManagement";
 import "./settings.module.css";
 import "./clerk.module.css";
 import "./notifications-guide.css";
@@ -36,6 +37,7 @@ type Screen =
   | "admin"
   | "matching"
   | "settings-roster"
+  | "settings-students"
   | "settings-problems"
   | "guide";
 
@@ -63,7 +65,7 @@ export default function Home() {
   }
 
   const isTeacher = profile.role === "admin";
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : screen === "guide" ? "사용 가이드" : "수업·문항 설정";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : screen === "settings-students" ? "학생 정보 관리" : screen === "guide" ? "사용 가이드" : "수업·문항 설정";
   const schoolLabel = isTeacher
     ? `${profile.subject ?? "교과목 미설정"} 교사`
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
@@ -90,6 +92,7 @@ export default function Home() {
             <button className={screen === "matching" ? "side-link active" : "side-link"} onClick={() => setScreen("matching")}>♧ <span>짝 매칭 관리</span></button>
             <div className="side-label settings-label">SETTINGS</div>
             <button className={screen === "settings-roster" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-roster")}>♙ <span>학급 명단 확인</span></button>
+            <button className={screen === "settings-students" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-students")}>✎ <span>학생 정보 관리</span></button>
             <button className={screen === "settings-problems" ? "side-link active" : "side-link"} onClick={() => setScreen("settings-problems")}>▤ <span>수업·문항 설정</span></button>
           </>
         ) : (
@@ -162,6 +165,8 @@ export default function Home() {
           <TeacherPairMatching />
         ) : screen === "settings-roster" ? (
           <TeacherClassResults />
+        ) : screen === "settings-students" ? (
+          <TeacherStudentManagement />
         ) : screen === "guide" ? (
           <UsageGuide isTeacher={isTeacher} />
         ) : (
