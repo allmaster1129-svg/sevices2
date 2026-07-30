@@ -217,9 +217,13 @@ export default function TeacherDashboard() {
   const afterSolvedCount = comparableResults.reduce(
     (total, result) =>
       total +
-      Object.values(result.after.answers ?? {}).filter(
-        (answer) => answer === "solved",
-      ).length,
+      (selectedLesson?.questions ?? []).filter((question) => {
+        const key = String(question.number);
+        return (
+          result.before.answers?.[key] === "solved" ||
+          result.after.answers?.[key] === "solved"
+        );
+      }).length,
     0,
   );
   const beforeSolvedRate = comparisonAnswerCount
@@ -232,9 +236,13 @@ export default function TeacherDashboard() {
     const beforeCount = Object.values(result.before.answers ?? {}).filter(
       (answer) => answer === "solved",
     ).length;
-    const afterCount = Object.values(result.after.answers ?? {}).filter(
-      (answer) => answer === "solved",
-    ).length;
+    const afterCount = (selectedLesson?.questions ?? []).filter((question) => {
+      const key = String(question.number);
+      return (
+        result.before.answers?.[key] === "solved" ||
+        result.after.answers?.[key] === "solved"
+      );
+    }).length;
     return afterCount > beforeCount;
   }).length;
   const questionChanges = (selectedLesson?.questions ?? []).map((question) => {
@@ -243,7 +251,9 @@ export default function TeacherDashboard() {
       (result) => result.before.answers?.[key] === "solved",
     ).length;
     const afterCount = comparableResults.filter(
-      (result) => result.after.answers?.[key] === "solved",
+      (result) =>
+        result.before.answers?.[key] === "solved" ||
+        result.after.answers?.[key] === "solved",
     ).length;
     const beforeRate = comparableResults.length
       ? Math.round((beforeCount / comparableResults.length) * 100)

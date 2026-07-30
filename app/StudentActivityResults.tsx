@@ -90,8 +90,17 @@ export default function StudentActivityResults({
     () => lessons.find((lesson) => lesson.id === lessonId) ?? null,
     [lessonId, lessons],
   );
+  const activityQuestions = useMemo(
+    () =>
+      selectedLesson?.questions.filter(
+        (question) =>
+          selectedLesson.response?.answers?.[String(question.number)] !==
+          "solved",
+      ) ?? [],
+    [selectedLesson],
+  );
   const answeredCount = selectedLesson
-    ? selectedLesson.questions.filter(
+    ? activityQuestions.filter(
         (question) => answers[String(question.number)],
       ).length
     : 0;
@@ -100,11 +109,24 @@ export default function StudentActivityResults({
   ).length;
   const complete =
     Boolean(selectedLesson?.pairing) &&
-    answeredCount === selectedLesson?.question_count;
+    answeredCount === activityQuestions.length;
 
   function selectLesson(lesson: StudentLesson) {
+    const activityQuestionNumbers = new Set(
+      lesson.questions
+        .filter(
+          (question) =>
+            lesson.response?.answers?.[String(question.number)] !== "solved",
+        )
+        .map((question) => String(question.number)),
+    );
+    const savedAnswers = Object.fromEntries(
+      Object.entries(lesson.post_activity_response?.answers ?? {}).filter(
+        ([number]) => activityQuestionNumbers.has(number),
+      ),
+    ) as Record<string, AnswerStatus>;
     setLessonId(lesson.id);
-    setAnswers(lesson.post_activity_response?.answers ?? {});
+    setAnswers(savedAnswers);
     setReflection(lesson.post_activity_response?.reflection ?? "");
     setMessage("");
     setError("");
@@ -234,7 +256,7 @@ export default function StudentActivityResults({
                   </p>
                 </div>
                 <div>
-                  <b>{answeredCount} / {selectedLesson.question_count}</b>
+                  <b>{answeredCount} / {activityQuestions.length}</b>
                   <span>입력 완료</span>
                 </div>
               </div>
@@ -257,7 +279,7 @@ export default function StudentActivityResults({
                     </b>
                   </div>
                   <div className="activity-question-list">
-                    {selectedLesson.questions.map((question) => {
+                    {activityQuestions.map((question) => {
                       const key = String(question.number);
                       const before = selectedLesson.response?.answers?.[key];
                       return (
@@ -319,6 +341,15 @@ export default function StudentActivityResults({
                         </article>
                       );
                     })}
+                    {!activityQuestions.length && (
+                      <div className="activity-all-solved">
+                        <b>처음부터 모든 문제를 해결했어요.</b>
+                        <span>
+                          활동 후 다시 확인할 문항이 없어 소감만 입력할 수
+                          있습니다.
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <label className="activity-reflection">
                     배움짝 활동 소감 <small>선택 입력</small>

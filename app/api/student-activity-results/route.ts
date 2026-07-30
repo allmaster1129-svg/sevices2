@@ -99,10 +99,42 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: initialResponse, error: initialResponseError } =
+    await student.supabase
+      .from("lesson_question_responses")
+      .select("answers")
+      .eq("lesson_id", lesson.id)
+      .eq("student_user_id", student.userId)
+      .maybeSingle();
+
+  if (initialResponseError) {
+    return NextResponse.json(
+      { error: initialResponseError.message },
+      { status: 500 },
+    );
+  }
+  if (!initialResponse) {
+    return NextResponse.json(
+      { error: "활동 전 문제 해결 여부를 먼저 입력해 주세요." },
+      { status: 403 },
+    );
+  }
+
   const questions = Array.isArray(lesson.questions)
     ? (lesson.questions as LessonQuestion[])
     : [];
-  const expectedNumbers = questions.map((question) => String(question.number));
+  const initialAnswers =
+    initialResponse.answers &&
+    typeof initialResponse.answers === "object" &&
+    !Array.isArray(initialResponse.answers)
+      ? (initialResponse.answers as Record<string, AnswerStatus>)
+      : {};
+  const expectedNumbers = questions
+    .filter(
+      (question) =>
+        initialAnswers[String(question.number)] !== "solved",
+    )
+    .map((question) => String(question.number));
   const answerKeys = Object.keys(body.answers);
   const validAnswers =
     expectedNumbers.length === lesson.question_count &&
