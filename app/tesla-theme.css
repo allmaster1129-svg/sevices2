@@ -433,7 +433,8 @@ label {
 
 .notification-icon,
 .notification-icon.survey,
-.notification-icon.activity {
+.notification-icon.activity,
+.notification-icon.matching {
   border-radius: 4px;
   background: var(--tesla-ash);
   color: var(--tesla-blue);

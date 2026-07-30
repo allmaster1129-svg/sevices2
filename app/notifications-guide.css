@@ -160,6 +160,11 @@
   color: var(--blue);
 }
 
+.notification-icon.matching {
+  background: #fff2cc;
+  color: #8a5b00;
+}
+
 .notification-item b {
   font-size: 12px;
 }

@@ -30,9 +30,19 @@ type Pairing = {
   partner_user_id: string;
 };
 
+type StudentPairing = {
+  partner_name: string;
+  partner_student_number: number | null;
+  generated_at: string;
+};
+
+type StudentLesson = Lesson & {
+  pairing: StudentPairing | null;
+};
+
 type NotificationItem = {
   id: string;
-  type: "survey" | "activity";
+  type: "survey" | "activity" | "matching";
   title: string;
   description: string;
   occurredAt: string;
@@ -56,7 +66,7 @@ export default function NotificationCenter({
 }) {
   const [items, setItems] = useState<NotificationItem[]>([]);
   const [open, setOpen] = useState(false);
-  const [loading, setLoading] = useState(isTeacher);
+  const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
   const [seenIds, setSeenIds] = useState<string[]>([]);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -71,17 +81,51 @@ export default function NotificationCenter({
   }, []);
 
   useEffect(() => {
-    if (!isTeacher) {
-      setLoading(false);
-      return;
-    }
-
     let active = true;
     const loadNotifications = async () => {
       try {
-        const response = await fetch("/api/class-results", {
-          cache: "no-store",
-        });
+        const response = await fetch(
+          isTeacher ? "/api/class-results" : "/api/student-lessons",
+          {
+            cache: "no-store",
+          },
+        );
+
+        if (!isTeacher) {
+          const data = (await response.json()) as {
+            lessons?: StudentLesson[];
+            error?: string;
+          };
+          if (!response.ok) {
+            throw new Error(data.error ?? "알림 이력을 불러오지 못했습니다.");
+          }
+
+          const nextItems = (data.lessons ?? [])
+            .filter(
+              (lesson): lesson is StudentLesson & {
+                pairing: StudentPairing;
+              } => Boolean(lesson.pairing),
+            )
+            .map<NotificationItem>((lesson) => ({
+              id: `matching-${lesson.id}-${lesson.pairing.generated_at}`,
+              type: "matching",
+              title: "새 배움짝 매칭 완료",
+              description: `${lesson.learning_date} · ${lesson.subject} 수업에서 ${lesson.pairing.partner_name} 학생과 배움짝으로 매칭됐어요.`,
+              occurredAt: lesson.pairing.generated_at,
+            }))
+            .sort(
+              (a, b) =>
+                new Date(b.occurredAt).getTime() -
+                new Date(a.occurredAt).getTime(),
+            );
+
+          if (active) {
+            setItems(nextItems);
+            setError("");
+          }
+          return;
+        }
+
         const data = (await response.json()) as {
           lessons?: Lesson[];
           students?: Student[];
@@ -275,7 +319,11 @@ export default function NotificationCenter({
           <div className="notification-heading">
             <div>
               <b>알림 이력</b>
-              <span>수업 완료 현황을 확인하세요.</span>
+              <span>
+                {isTeacher
+                  ? "수업 완료 현황을 확인하세요."
+                  : "새로운 배움짝 매칭을 확인하세요."}
+              </span>
             </div>
             <em>{items.length}개</em>
           </div>
@@ -284,11 +332,11 @@ export default function NotificationCenter({
               <p className="notification-empty">알림을 확인하고 있어요...</p>
             ) : error ? (
               <p className="notification-error">{error}</p>
-            ) : !isTeacher ? (
-              <p className="notification-empty">학생 알림은 준비 중이에요.</p>
             ) : !items.length ? (
               <p className="notification-empty">
-                아직 완료된 설문이나 배움짝 활동이 없어요.
+                {isTeacher
+                  ? "아직 완료된 설문이나 배움짝 활동이 없어요."
+                  : "아직 완료된 배움짝 매칭이 없어요."}
               </p>
             ) : (
               items.map((item) => (
@@ -297,7 +345,11 @@ export default function NotificationCenter({
                     className={`notification-icon ${item.type}`}
                     aria-hidden="true"
                   >
-                    {item.type === "survey" ? "✓" : "↔"}
+                    {item.type === "survey"
+                      ? "✓"
+                      : item.type === "matching"
+                        ? "짝"
+                        : "↔"}
                   </span>
                   <div>
                     <b>{item.title}</b>
