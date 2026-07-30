@@ -97,6 +97,9 @@ export default function TeacherDashboard() {
     "generate" | "save" | null
   >(null);
   const [feedbackError, setFeedbackError] = useState("");
+  const [reflectionStudent, setReflectionStudent] = useState<Student | null>(
+    null,
+  );
 
   useEffect(() => {
     fetch("/api/class-results", { cache: "no-store" })
@@ -689,15 +692,27 @@ export default function TeacherDashboard() {
                           </strong>
                         </td>
                         <td>
-                          <button
-                            type="button"
-                            className="student-feedback-button"
-                            onClick={() => openFeedback(student)}
-                          >
-                            {feedbackByStudent.has(student.user_id)
-                              ? "피드백 수정"
-                              : "피드백 주기"}
-                          </button>
+                          <div className="student-feedback-actions">
+                            <button
+                              type="button"
+                              className="student-reflection-button"
+                              disabled={!postResponse?.reflection?.trim()}
+                              onClick={() => setReflectionStudent(student)}
+                            >
+                              {postResponse?.reflection?.trim()
+                                ? "활동 소감 보기"
+                                : "소감 대기"}
+                            </button>
+                            <button
+                              type="button"
+                              className="student-feedback-button"
+                              onClick={() => openFeedback(student)}
+                            >
+                              {feedbackByStudent.has(student.user_id)
+                                ? "피드백 수정"
+                                : "피드백 주기"}
+                            </button>
+                          </div>
                         </td>
                       </tr>
                     );
@@ -846,6 +861,62 @@ export default function TeacherDashboard() {
                 onClick={saveFeedback}
               >
                 {feedbackBusy === "save" ? "저장 중..." : "피드백 저장"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
+
+      {reflectionStudent && selectedLesson && (
+        <div
+          className="feedback-modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setReflectionStudent(null)}
+        >
+          <section
+            className="feedback-modal student-reflection-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="student-reflection-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="feedback-modal-close"
+              aria-label="활동 소감 창 닫기"
+              onClick={() => setReflectionStudent(null)}
+            >
+              ×
+            </button>
+            <p className="overline">AFTER PEER LEARNING</p>
+            <h2 id="student-reflection-modal-title">
+              {reflectionStudent.display_name} 학생의 활동 소감
+            </h2>
+            <p>
+              {selectedLesson.subject} · {formatDate(selectedLesson.learning_date)} ·{" "}
+              {formatLessonPeriod(selectedLesson.learning_time)}
+            </p>
+            <blockquote>
+              {postResponseByStudent.get(reflectionStudent.user_id)?.reflection}
+            </blockquote>
+            <div className="student-reflection-modal-actions">
+              <button
+                type="button"
+                className="secondary"
+                onClick={() => setReflectionStudent(null)}
+              >
+                닫기
+              </button>
+              <button
+                type="button"
+                className="primary"
+                onClick={() => {
+                  const student = reflectionStudent;
+                  setReflectionStudent(null);
+                  openFeedback(student);
+                }}
+              >
+                이 소감으로 피드백 작성하기
               </button>
             </div>
           </section>
