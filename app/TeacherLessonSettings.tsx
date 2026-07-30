@@ -8,6 +8,9 @@ type QuestionDraft = {
   number: number;
   title: string;
   content: string;
+  imageUrl?: string;
+  imagePath?: string;
+  imageAlt?: string;
 };
 
 type SavedLesson = {
@@ -31,15 +34,16 @@ function makeQuestion(number: number): QuestionDraft {
 export default function TeacherLessonSettings({
   databaseSynced,
   syncWarning,
+  subject,
 }: {
   databaseSynced: boolean;
   syncWarning?: string;
+  subject: string;
 }) {
   const [grade, setGrade] = useState(2);
   const [classNumber, setClassNumber] = useState(3);
   const [learningDate, setLearningDate] = useState(today());
   const [learningTime, setLearningTime] = useState("09:00");
-  const [subject, setSubject] = useState("수학");
   const [questionCount, setQuestionCount] = useState(3);
   const [questions, setQuestions] = useState<QuestionDraft[]>([
     makeQuestion(1),
@@ -49,6 +53,9 @@ export default function TeacherLessonSettings({
   const [lessons, setLessons] = useState<SavedLesson[]>([]);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [uploadingQuestion, setUploadingQuestion] = useState<number | null>(
+    null,
+  );
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
 
@@ -102,6 +109,63 @@ export default function TeacherLessonSettings({
         questionIndex === index ? { ...question, [field]: value } : question,
       ),
     );
+  }
+
+  function updateQuestionImage(
+    index: number,
+    image: Pick<QuestionDraft, "imageUrl" | "imagePath" | "imageAlt">,
+  ) {
+    setQuestions((current) =>
+      current.map((question, questionIndex) =>
+        questionIndex === index ? { ...question, ...image } : question,
+      ),
+    );
+  }
+
+  async function uploadQuestionImage(index: number, file?: File) {
+    if (!file) return;
+    if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
+      setError("JPG, PNG, WEBP 형식의 이미지만 업로드할 수 있습니다.");
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      setError("문항 이미지는 5MB 이하로 올려 주세요.");
+      return;
+    }
+
+    setUploadingQuestion(index);
+    setError("");
+    setMessage("");
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      const response = await fetch("/api/question-images", {
+        method: "POST",
+        body: formData,
+      });
+      const result = (await response.json()) as {
+        imageUrl?: string;
+        imagePath?: string;
+        error?: string;
+      };
+      if (!response.ok || !result.imageUrl || !result.imagePath) {
+        throw new Error(result.error ?? "문항 이미지를 업로드하지 못했습니다.");
+      }
+      updateQuestionImage(index, {
+        imageUrl: result.imageUrl,
+        imagePath: result.imagePath,
+        imageAlt: `${index + 1}번 문항 이미지`,
+      });
+      setMessage(`${index + 1}번 문항 이미지가 업로드되었습니다.`);
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "문항 이미지를 업로드하는 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setUploadingQuestion(null);
+    }
   }
 
   async function saveLesson() {
@@ -234,12 +298,11 @@ export default function TeacherLessonSettings({
               </select>
             </label>
             <label>
-              과목
-              <input
-                value={subject}
-                onChange={(event) => setSubject(event.target.value)}
-                placeholder="예: 수학"
-              />
+              담당 교과목
+              <div className="lesson-subject-value">
+                <b>{subject}</b>
+                <span>교사 프로필과 자동 연결</span>
+              </div>
             </label>
             <label>
               문항 수
@@ -289,6 +352,67 @@ export default function TeacherLessonSettings({
                       placeholder="교재 페이지, 문제 내용 또는 풀이 안내를 입력하세요."
                     />
                   </label>
+                  <div className="question-image-field">
+                    <span>문항 이미지 <small>선택 · 최대 5MB</small></span>
+                    {question.imageUrl ? (
+                      <div className="question-image-preview">
+                        <img
+                          src={question.imageUrl}
+                          alt={question.imageAlt ?? `${question.number}번 문항 이미지`}
+                        />
+                        <div>
+                          <label className="question-image-replace">
+                            이미지 바꾸기
+                            <input
+                              type="file"
+                              accept="image/jpeg,image/png,image/webp"
+                              disabled={uploadingQuestion !== null}
+                              onChange={(event) =>
+                                void uploadQuestionImage(
+                                  index,
+                                  event.target.files?.[0],
+                                )
+                              }
+                            />
+                          </label>
+                          <button
+                            type="button"
+                            className="question-image-remove"
+                            onClick={() =>
+                              updateQuestionImage(index, {
+                                imageUrl: undefined,
+                                imagePath: undefined,
+                                imageAlt: undefined,
+                              })
+                            }
+                          >
+                            이미지 제거
+                          </button>
+                        </div>
+                      </div>
+                    ) : (
+                      <label className="question-image-upload">
+                        <span aria-hidden="true">＋</span>
+                        <b>
+                          {uploadingQuestion === index
+                            ? "업로드 중..."
+                            : "문항 이미지 올리기"}
+                        </b>
+                        <small>JPG, PNG, WEBP</small>
+                        <input
+                          type="file"
+                          accept="image/jpeg,image/png,image/webp"
+                          disabled={uploadingQuestion !== null}
+                          onChange={(event) =>
+                            void uploadQuestionImage(
+                              index,
+                              event.target.files?.[0],
+                            )
+                          }
+                        />
+                      </label>
+                    )}
+                  </div>
                 </div>
               </article>
             ))}
@@ -332,6 +456,7 @@ export default function TeacherLessonSettings({
               <div key={question.number}>
                 <b>{question.number}</b>
                 <span>{question.title.trim() || "문항 이름 입력 전"}</span>
+                {question.imageUrl && <em aria-label="이미지 첨부됨">IMG</em>}
               </div>
             ))}
             {questionCount > 5 && <small>외 {questionCount - 5}개 문항</small>}

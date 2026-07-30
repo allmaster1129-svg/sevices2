@@ -11,6 +11,8 @@ type LessonQuestion = {
   number: number;
   title: string;
   content: string;
+  image_url?: string | null;
+  image_alt?: string | null;
 };
 
 type StudentLesson = {
@@ -324,6 +326,16 @@ export default function StudentLessonDashboard({
                       <div className="student-question-copy">
                         <h3>{question.title}</h3>
                         <p>{question.content}</p>
+                        {question.image_url && (
+                          <img
+                            className="student-question-image"
+                            src={question.image_url}
+                            alt={
+                              question.image_alt ??
+                              `${question.number}번 문항 이미지`
+                            }
+                          />
+                        )}
                       </div>
                       <div className="answer-toggle">
                         <button

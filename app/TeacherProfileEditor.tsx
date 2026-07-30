@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
+import {
+  DEFAULT_TEACHER_SUBJECT,
+  TEACHER_SUBJECTS,
+} from "./subjects";
 
 type ApiProfile = {
   role: "student" | "admin";
@@ -13,7 +17,7 @@ type ApiProfile = {
   subject: string | null;
 };
 
-export default function StudentProfileEditor({
+export default function TeacherProfileEditor({
   profile,
   onClose,
   onSaved,
@@ -23,14 +27,14 @@ export default function StudentProfileEditor({
   onSaved: (profile: AccountProfile) => void;
 }) {
   const { user } = useUser();
-  const [grade, setGrade] = useState(profile.grade ?? 1);
-  const [classNumber, setClassNumber] = useState(profile.classNumber ?? 1);
-  const [studentNumber, setStudentNumber] = useState(profile.studentNumber ?? 1);
+  const [subject, setSubject] = useState(
+    profile.subject ?? DEFAULT_TEACHER_SUBJECT,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   async function saveProfile() {
-    if (!user) return;
+    if (!user || !subject) return;
     setSaving(true);
     setError("");
 
@@ -38,9 +42,7 @@ export default function StudentProfileEditor({
       await user.update({
         unsafeMetadata: {
           ...user.unsafeMetadata,
-          grade,
-          classNumber,
-          studentNumber,
+          subject,
         },
       });
 
@@ -48,11 +50,12 @@ export default function StudentProfileEditor({
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          role: "student",
+          role: "admin",
           displayName: profile.displayName,
-          grade,
-          classNumber,
-          studentNumber,
+          grade: null,
+          classNumber: null,
+          studentNumber: null,
+          subject,
         }),
       });
       const result = (await response.json()) as {
@@ -63,16 +66,16 @@ export default function StudentProfileEditor({
       };
 
       if (!response.ok || !result.profile) {
-        throw new Error(result.error ?? "학생 정보를 저장하지 못했습니다.");
+        throw new Error(result.error ?? "교사 정보를 저장하지 못했습니다.");
       }
 
       onSaved({
-        role: "student",
+        role: "admin",
         displayName: result.profile.display_name,
-        grade: result.profile.grade,
-        classNumber: result.profile.class_number,
-        studentNumber: result.profile.student_number,
-        subject: null,
+        grade: null,
+        classNumber: null,
+        studentNumber: null,
+        subject: result.profile.subject ?? subject,
         databaseSynced: result.databaseSynced ?? true,
         syncWarning: result.syncWarning,
       });
@@ -81,7 +84,7 @@ export default function StudentProfileEditor({
       setError(
         reason instanceof Error
           ? reason.message
-          : "학생 정보를 저장하는 중 오류가 발생했습니다.",
+          : "교사 정보를 저장하는 중 오류가 발생했습니다.",
       );
     } finally {
       setSaving(false);
@@ -94,48 +97,35 @@ export default function StudentProfileEditor({
         className="profile-editor-dialog"
         role="dialog"
         aria-modal="true"
-        aria-labelledby="profile-editor-title"
+        aria-labelledby="teacher-profile-editor-title"
         onMouseDown={(event) => event.stopPropagation()}
       >
         <button
           type="button"
           className="profile-editor-close"
-          aria-label="학생 정보 수정 닫기"
+          aria-label="교사 정보 수정 닫기"
           onClick={onClose}
         >
           ×
         </button>
-        <p className="overline">MY PROFILE</p>
-        <h2 id="profile-editor-title">학급 정보를 변경해요</h2>
+        <p className="overline">TEACHER PROFILE</p>
+        <h2 id="teacher-profile-editor-title">담당 교과목을 변경해요</h2>
         <p className="profile-editor-description">
-          변경한 학년과 반에 맞는 수업이 학생 화면에 표시됩니다.
+          변경 후 교사 화면에는 선택한 교과목의 수업과 결과만 표시됩니다.
         </p>
         <div className="profile-editor-avatar" aria-hidden="true">
           {profile.displayName.slice(0, 1)}
         </div>
         <b className="profile-editor-name">{profile.displayName}</b>
-        <div className="profile-editor-fields">
+        <div className="profile-editor-fields teacher-subject-editor">
           <label>
-            학년
-            <select value={grade} onChange={(event) => setGrade(Number(event.target.value))}>
-              {[1, 2, 3].map((value) => (
-                <option key={value} value={value}>{value}학년</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            반
-            <select value={classNumber} onChange={(event) => setClassNumber(Number(event.target.value))}>
-              {Array.from({ length: 50 }, (_, index) => index + 1).map((value) => (
-                <option key={value} value={value}>{value}반</option>
-              ))}
-            </select>
-          </label>
-          <label>
-            번호
-            <select value={studentNumber} onChange={(event) => setStudentNumber(Number(event.target.value))}>
-              {Array.from({ length: 100 }, (_, index) => index + 1).map((value) => (
-                <option key={value} value={value}>{value}번</option>
+            담당 교과목
+            <select
+              value={subject}
+              onChange={(event) => setSubject(event.target.value)}
+            >
+              {TEACHER_SUBJECTS.map((value) => (
+                <option key={value} value={value}>{value}</option>
               ))}
             </select>
           </label>
@@ -144,7 +134,7 @@ export default function StudentProfileEditor({
         <div className="profile-editor-actions">
           <button type="button" className="secondary" onClick={onClose}>취소</button>
           <button type="button" className="primary" disabled={saving} onClick={saveProfile}>
-            {saving ? "저장 중..." : "학급 정보 저장하기"}
+            {saving ? "저장 중..." : "교과목 저장하기"}
           </button>
         </div>
       </section>

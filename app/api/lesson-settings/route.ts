@@ -6,6 +6,9 @@ type QuestionInput = {
   number?: number;
   title?: string;
   content?: string;
+  imageUrl?: string;
+  imagePath?: string;
+  imageAlt?: string;
 };
 
 type LessonInput = {
@@ -38,7 +41,7 @@ async function requireTeacher() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, subject")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -52,7 +55,7 @@ async function requireTeacher() {
     return { error: "교사 계정만 수업을 설정할 수 있습니다.", status: 403 } as const;
   }
 
-  return { userId, supabase } as const;
+  return { userId, supabase, subject: data.subject?.trim() || "수학" } as const;
 }
 
 export async function GET() {
@@ -70,6 +73,7 @@ export async function GET() {
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
     )
     .eq("teacher_user_id", teacher.userId)
+    .eq("subject", teacher.subject)
     .order("learning_date", { ascending: false })
     .order("learning_time", { ascending: false })
     .limit(20);
@@ -133,12 +137,16 @@ export async function POST(request: Request) {
       class_number: Number(body.classNumber),
       learning_date: body.learningDate,
       learning_time: body.learningTime,
-      subject: body.subject?.trim() || "수학",
+      subject: teacher.subject,
       question_count: questionCount,
       questions: questions.map((question, index) => ({
         number: index + 1,
         title: question.title!.trim(),
         content: question.content!.trim(),
+        image_url: question.imageUrl?.trim() || null,
+        image_path: question.imagePath?.trim() || null,
+        image_alt:
+          question.imageAlt?.trim() || `${index + 1}번 문항 이미지`,
       })),
     })
     .select(

@@ -49,7 +49,7 @@ async function requireTeacher() {
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, subject")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -63,7 +63,11 @@ async function requireTeacher() {
     return { error: "교사 계정만 짝을 매칭할 수 있습니다.", status: 403 } as const;
   }
 
-  return { userId, supabase } as const;
+  return {
+    userId,
+    supabase,
+    subject: profile.subject?.trim() || "수학",
+  } as const;
 }
 
 function overlap(
@@ -105,6 +109,7 @@ export async function POST(request: Request) {
     )
     .eq("id", body.lessonId)
     .eq("teacher_user_id", teacher.userId)
+    .eq("subject", teacher.subject)
     .maybeSingle();
 
   if (lessonError) {

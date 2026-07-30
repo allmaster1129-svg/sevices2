@@ -14,6 +14,7 @@ import StudentActivityResults from "./StudentActivityResults";
 import NotificationCenter from "./NotificationCenter";
 import UsageGuide from "./UsageGuide";
 import StudentProfileEditor from "./StudentProfileEditor";
+import TeacherProfileEditor from "./TeacherProfileEditor";
 import "./settings.module.css";
 import "./clerk.module.css";
 import "./notifications-guide.css";
@@ -64,7 +65,7 @@ export default function Home() {
   const isTeacher = profile.role === "admin";
   const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : screen === "guide" ? "사용 가이드" : "수업·문항 설정";
   const schoolLabel = isTeacher
-    ? "교사 관리자"
+    ? `${profile.subject ?? "교과목 미설정"} 교사`
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
   const handleSignOut = async () => {
     setSigningOut(true);
@@ -107,10 +108,18 @@ export default function Home() {
             <span>사용 가이드 보기 →</span>
           </button>
           {isTeacher ? (
-            <div className="profile">
-              <span className="mini-avatar">쌤</span>
-              <span><b>{profile.displayName}</b><small>교사 계정</small></span>
-            </div>
+            <button
+              type="button"
+              className="profile profile-button"
+              aria-label="담당 교과목 변경"
+              onClick={() => setProfileEditorOpen(true)}
+            >
+              <span className="mini-avatar">{profile.displayName.slice(0, 1)}</span>
+              <span>
+                <b>{profile.displayName}</b>
+                <small>{profile.subject ?? "교과목 설정"} · 변경</small>
+              </span>
+            </button>
           ) : (
             <button
               type="button"
@@ -138,7 +147,9 @@ export default function Home() {
           <div className="breadcrumb">배움짝 <span>/</span> {title}</div>
           <div className="top-actions">
             <NotificationCenter isTeacher={isTeacher} />
-            <span className="account-role-label">{isTeacher ? "교사 관리자" : "학생"}</span>
+            <span className="account-role-label">
+              {isTeacher ? `${profile.subject ?? ""} 교사` : "학생"}
+            </span>
           </div>
         </header>
         {screen === "admin" ? (
@@ -157,6 +168,7 @@ export default function Home() {
           <TeacherLessonSettings
             databaseSynced={profile.databaseSynced}
             syncWarning={profile.syncWarning}
+            subject={profile.subject ?? "수학"}
           />
         )}
       </main>
@@ -165,6 +177,16 @@ export default function Home() {
           profile={profile}
           onClose={() => setProfileEditorOpen(false)}
           onSaved={setProfile}
+        />
+      )}
+      {isTeacher && profileEditorOpen && (
+        <TeacherProfileEditor
+          profile={profile}
+          onClose={() => setProfileEditorOpen(false)}
+          onSaved={(savedProfile) => {
+            setProfile(savedProfile);
+            setScreen("settings-problems");
+          }}
         />
       )}
     </div>

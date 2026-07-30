@@ -24,7 +24,7 @@ async function requireTeacher() {
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, subject")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -41,7 +41,11 @@ async function requireTeacher() {
     } as const;
   }
 
-  return { userId, supabase } as const;
+  return {
+    userId,
+    supabase,
+    subject: profile.subject?.trim() || "수학",
+  } as const;
 }
 
 export async function GET() {
@@ -59,6 +63,7 @@ export async function GET() {
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
     )
     .eq("teacher_user_id", teacher.userId)
+    .eq("subject", teacher.subject)
     .order("learning_date", { ascending: false })
     .order("learning_time", { ascending: false });
 

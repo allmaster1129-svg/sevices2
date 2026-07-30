@@ -8,6 +8,10 @@ import {
 } from "@clerk/nextjs";
 import { useEffect, useState } from "react";
 import { ComicBubble, OfficeCharacter } from "./ComicUI";
+import {
+  DEFAULT_TEACHER_SUBJECT,
+  TEACHER_SUBJECTS,
+} from "./subjects";
 
 export type AccountRole = "student" | "admin";
 
@@ -17,6 +21,7 @@ export type AccountProfile = {
   grade: number | null;
   classNumber: number | null;
   studentNumber: number | null;
+  subject: string | null;
   databaseSynced: boolean;
   syncWarning?: string;
 };
@@ -27,6 +32,7 @@ type SavedProfile = {
   grade?: number;
   classNumber?: number;
   studentNumber?: number;
+  subject?: string;
 };
 
 type ApiProfile = {
@@ -35,6 +41,7 @@ type ApiProfile = {
   grade: number | null;
   class_number: number | null;
   student_number: number | null;
+  subject: string | null;
 };
 
 function normalizeProfile(
@@ -48,6 +55,7 @@ function normalizeProfile(
     grade: profile.grade,
     classNumber: profile.class_number,
     studentNumber: profile.student_number,
+    subject: profile.subject,
     databaseSynced,
     syncWarning,
   };
@@ -64,6 +72,7 @@ export default function ClerkDatabaseSetup({
   const [grade, setGrade] = useState(1);
   const [classNumber, setClassNumber] = useState(1);
   const [studentNumber, setStudentNumber] = useState(1);
+  const [subject, setSubject] = useState(DEFAULT_TEACHER_SUBJECT);
   const [checkingProfile, setCheckingProfile] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -81,6 +90,7 @@ export default function ClerkDatabaseSetup({
     setGrade(saved.grade ?? 1);
     setClassNumber(saved.classNumber ?? 1);
     setStudentNumber(saved.studentNumber ?? 1);
+    setSubject(saved.subject ?? DEFAULT_TEACHER_SUBJECT);
 
     let active = true;
     setCheckingProfile(true);
@@ -108,7 +118,7 @@ export default function ClerkDatabaseSetup({
       .then((profile) => {
         if (!active || !profile) return;
         const profileIsComplete =
-          profile.role === "admin" ||
+          (profile.role === "admin" && Boolean(profile.subject)) ||
           Boolean(
             profile.grade &&
               profile.classNumber &&
@@ -162,6 +172,7 @@ export default function ClerkDatabaseSetup({
         grade: role === "student" ? grade : null,
         classNumber: role === "student" ? classNumber : null,
         studentNumber: role === "student" ? studentNumber : null,
+        subject: role === "admin" ? subject : null,
       };
 
       await user.update({
@@ -178,6 +189,7 @@ export default function ClerkDatabaseSetup({
           grade: role === "student" ? grade : null,
           classNumber: role === "student" ? classNumber : null,
           studentNumber: role === "student" ? studentNumber : null,
+          subject: role === "admin" ? subject : null,
         }),
       });
       const result = (await response.json()) as {
@@ -364,6 +376,19 @@ export default function ClerkDatabaseSetup({
               </label>
             </div>
           )}
+          {role === "admin" && (
+            <label>
+              담당 교과목
+              <select
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
+              >
+                {TEACHER_SUBJECTS.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+          )}
           {saveError && <p className="profile-save-error">{saveError}</p>}
           <button
             className="login-button"
@@ -371,7 +396,8 @@ export default function ClerkDatabaseSetup({
               saving ||
               !name.trim() ||
               (role === "student" &&
-                (!grade || !classNumber || !studentNumber))
+                (!grade || !classNumber || !studentNumber)) ||
+              (role === "admin" && !subject)
             }
             onClick={saveProfile}
           >

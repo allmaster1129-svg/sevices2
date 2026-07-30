@@ -1,6 +1,10 @@
 import { auth, currentUser } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import {
+  DEFAULT_TEACHER_SUBJECT,
+  isTeacherSubject,
+} from "@/app/subjects";
 
 type ProfileInput = {
   role?: "student" | "admin";
@@ -8,6 +12,7 @@ type ProfileInput = {
   grade?: number | null;
   classNumber?: number | null;
   studentNumber?: number | null;
+  subject?: string | null;
 };
 
 type ClerkProfileMetadata = {
@@ -16,6 +21,7 @@ type ClerkProfileMetadata = {
   grade?: number | null;
   classNumber?: number | null;
   studentNumber?: number | null;
+  subject?: string | null;
 };
 
 function validInteger(value: number | null | undefined, min: number, max: number) {
@@ -50,6 +56,10 @@ async function getClerkProfileFallback() {
       metadata.role === "student" ? (metadata.classNumber ?? null) : null,
     student_number:
       metadata.role === "student" ? (metadata.studentNumber ?? null) : null,
+    subject:
+      metadata.role === "admin"
+        ? (metadata.subject ?? DEFAULT_TEACHER_SUBJECT)
+        : null,
   };
 }
 
@@ -62,7 +72,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, display_name, grade, class_number, student_number")
+    .select("role, display_name, grade, class_number, student_number, subject")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -112,11 +122,19 @@ export async function POST(request: Request) {
     );
   }
 
+  if (body.role === "admin" && !isTeacherSubject(body.subject)) {
+    return NextResponse.json(
+      { error: "담당 교과목을 선택해 주세요." },
+      { status: 400 },
+    );
+  }
+
   const grade = body.role === "student" ? Number(body.grade) : null;
   const classNumber =
     body.role === "student" ? Number(body.classNumber) : null;
   const studentNumber =
     body.role === "student" ? Number(body.studentNumber) : null;
+  const subject = body.role === "admin" ? body.subject!.trim() : null;
 
   const supabase = await createClient();
   const { data, error } = await supabase
@@ -131,11 +149,12 @@ export async function POST(request: Request) {
         grade,
         class_number: classNumber,
         student_number: studentNumber,
+        subject,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" },
     )
-    .select("role, display_name, grade, class_number, student_number")
+    .select("role, display_name, grade, class_number, student_number, subject")
     .single();
 
   if (error) {
@@ -148,6 +167,7 @@ export async function POST(request: Request) {
             grade,
             class_number: classNumber,
             student_number: studentNumber,
+            subject,
           },
           databaseSynced: false,
           syncWarning: syncWarning(),

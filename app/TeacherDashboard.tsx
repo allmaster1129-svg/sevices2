@@ -10,6 +10,8 @@ type LessonQuestion = {
   number: number;
   title: string;
   content: string;
+  image_url?: string | null;
+  image_alt?: string | null;
 };
 
 type Lesson = {

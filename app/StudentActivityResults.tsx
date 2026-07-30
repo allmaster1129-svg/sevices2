@@ -10,6 +10,8 @@ type LessonQuestion = {
   number: number;
   title: string;
   content: string;
+  image_url?: string | null;
+  image_alt?: string | null;
 };
 
 type StudentLesson = {
@@ -263,6 +265,16 @@ export default function StudentActivityResults({
                           <span>{question.number}</span>
                           <div>
                             <h3>{question.title}</h3>
+                            {question.image_url && (
+                              <img
+                                className="activity-question-image"
+                                src={question.image_url}
+                                alt={
+                                  question.image_alt ??
+                                  `${question.number}번 문항 이미지`
+                                }
+                              />
+                            )}
                             <small>
                               활동 전:{" "}
                               {before === "solved"
