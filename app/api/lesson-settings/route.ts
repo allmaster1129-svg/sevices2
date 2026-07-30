@@ -12,6 +12,7 @@ type QuestionInput = {
 };
 
 type LessonInput = {
+  lessonId?: string;
   grade?: number;
   classNumber?: number;
   learningDate?: string;
@@ -20,6 +21,53 @@ type LessonInput = {
   questionCount?: number;
   questions?: QuestionInput[];
 };
+
+function validateLessonInput(body: LessonInput) {
+  const questions = body.questions ?? [];
+  const questionCount = Number(body.questionCount);
+  const validQuestions =
+    questions.length === questionCount &&
+    questions.every(
+      (question, index) =>
+        question.number === index + 1 &&
+        Boolean(question.title?.trim()) &&
+        Boolean(question.content?.trim()),
+    );
+
+  if (
+    !Number.isInteger(body.grade) ||
+    Number(body.grade) < 1 ||
+    Number(body.grade) > 3 ||
+    !Number.isInteger(body.classNumber) ||
+    Number(body.classNumber) < 1 ||
+    Number(body.classNumber) > 50 ||
+    !body.learningDate ||
+    !body.learningTime ||
+    !Number.isInteger(questionCount) ||
+    questionCount < 1 ||
+    questionCount > 50 ||
+    !validQuestions
+  ) {
+    return null;
+  }
+
+  return {
+    grade: Number(body.grade),
+    class_number: Number(body.classNumber),
+    learning_date: body.learningDate,
+    learning_time: body.learningTime,
+    question_count: questionCount,
+    questions: questions.map((question, index) => ({
+      number: index + 1,
+      title: question.title!.trim(),
+      content: question.content!.trim(),
+      image_url: question.imageUrl?.trim() || null,
+      image_path: question.imagePath?.trim() || null,
+      image_alt:
+        question.imageAlt?.trim() || `${index + 1}번 문항 이미지`,
+    })),
+  };
+}
 
 function readableSupabaseError(message: string) {
   const normalized = message.toLowerCase();
@@ -98,31 +146,8 @@ export async function POST(request: Request) {
   }
 
   const body = (await request.json()) as LessonInput;
-  const questions = body.questions ?? [];
-  const questionCount = Number(body.questionCount);
-  const validQuestions =
-    questions.length === questionCount &&
-    questions.every(
-      (question, index) =>
-        question.number === index + 1 &&
-        Boolean(question.title?.trim()) &&
-        Boolean(question.content?.trim()),
-    );
-
-  if (
-    !Number.isInteger(body.grade) ||
-    Number(body.grade) < 1 ||
-    Number(body.grade) > 3 ||
-    !Number.isInteger(body.classNumber) ||
-    Number(body.classNumber) < 1 ||
-    Number(body.classNumber) > 50 ||
-    !body.learningDate ||
-    !body.learningTime ||
-    !Number.isInteger(questionCount) ||
-    questionCount < 1 ||
-    questionCount > 50 ||
-    !validQuestions
-  ) {
+  const lessonInput = validateLessonInput(body);
+  if (!lessonInput) {
     return NextResponse.json(
       { error: "학급, 일정, 문항 정보를 빠짐없이 입력해 주세요." },
       { status: 400 },
@@ -133,21 +158,8 @@ export async function POST(request: Request) {
     .from("lesson_settings")
     .insert({
       teacher_user_id: teacher.userId,
-      grade: Number(body.grade),
-      class_number: Number(body.classNumber),
-      learning_date: body.learningDate,
-      learning_time: body.learningTime,
+      ...lessonInput,
       subject: teacher.subject,
-      question_count: questionCount,
-      questions: questions.map((question, index) => ({
-        number: index + 1,
-        title: question.title!.trim(),
-        content: question.content!.trim(),
-        image_url: question.imageUrl?.trim() || null,
-        image_path: question.imagePath?.trim() || null,
-        image_alt:
-          question.imageAlt?.trim() || `${index + 1}번 문항 이미지`,
-      })),
     })
     .select(
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
@@ -162,4 +174,52 @@ export async function POST(request: Request) {
   }
 
   return NextResponse.json({ lesson: data }, { status: 201 });
+}
+
+export async function PATCH(request: Request) {
+  const teacher = await requireTeacher();
+  if ("error" in teacher) {
+    return NextResponse.json(
+      { error: teacher.error },
+      { status: teacher.status },
+    );
+  }
+
+  const body = (await request.json()) as LessonInput;
+  const lessonInput = validateLessonInput(body);
+  if (!body.lessonId || !lessonInput) {
+    return NextResponse.json(
+      { error: "수정할 수업과 학급, 일정, 문항 정보를 확인해 주세요." },
+      { status: 400 },
+    );
+  }
+
+  const { data, error } = await teacher.supabase
+    .from("lesson_settings")
+    .update({
+      ...lessonInput,
+      updated_at: new Date().toISOString(),
+    })
+    .eq("id", body.lessonId)
+    .eq("teacher_user_id", teacher.userId)
+    .eq("subject", teacher.subject)
+    .select(
+      "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
+    )
+    .maybeSingle();
+
+  if (error) {
+    return NextResponse.json(
+      { error: readableSupabaseError(error.message) },
+      { status: 500 },
+    );
+  }
+  if (!data) {
+    return NextResponse.json(
+      { error: "현재 과목에서 수정할 수업을 찾지 못했습니다." },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ lesson: data });
 }

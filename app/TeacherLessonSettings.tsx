@@ -21,6 +21,14 @@ type SavedLesson = {
   learning_time: string;
   subject: string;
   question_count: number;
+  questions: Array<{
+    number: number;
+    title: string;
+    content: string;
+    image_url?: string | null;
+    image_path?: string | null;
+    image_alt?: string | null;
+  }>;
 };
 
 function today() {
@@ -51,6 +59,7 @@ export default function TeacherLessonSettings({
     makeQuestion(3),
   ]);
   const [lessons, setLessons] = useState<SavedLesson[]>([]);
+  const [editingLessonId, setEditingLessonId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingQuestion, setUploadingQuestion] = useState<number | null>(
@@ -109,6 +118,47 @@ export default function TeacherLessonSettings({
         questionIndex === index ? { ...question, [field]: value } : question,
       ),
     );
+  }
+
+  function resetForm() {
+    setEditingLessonId("");
+    setGrade(2);
+    setClassNumber(3);
+    setLearningDate(today());
+    setLearningTime("09:00");
+    setQuestionCount(3);
+    setQuestions([makeQuestion(1), makeQuestion(2), makeQuestion(3)]);
+    setMessage("");
+    setError("");
+  }
+
+  function editLesson(lesson: SavedLesson) {
+    const lessonQuestions = Array.isArray(lesson.questions)
+      ? lesson.questions
+      : [];
+    setEditingLessonId(lesson.id);
+    setGrade(lesson.grade);
+    setClassNumber(lesson.class_number);
+    setLearningDate(lesson.learning_date);
+    setLearningTime(lesson.learning_time);
+    setQuestionCount(lesson.question_count);
+    setQuestions(
+      Array.from({ length: lesson.question_count }, (_, index) => {
+        const question = lessonQuestions[index];
+        if (!question) return makeQuestion(index + 1);
+        return {
+          number: index + 1,
+          title: question.title ?? "",
+          content: question.content ?? "",
+          imageUrl: question.image_url ?? undefined,
+          imagePath: question.image_path ?? undefined,
+          imageAlt: question.image_alt ?? undefined,
+        };
+      }),
+    );
+    setMessage("선택한 지난 수업을 불러왔습니다. 수정 후 저장해 주세요.");
+    setError("");
+    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   function updateQuestionImage(
@@ -176,9 +226,10 @@ export default function TeacherLessonSettings({
 
     try {
       const response = await fetch("/api/lesson-settings", {
-        method: "POST",
+        method: editingLessonId ? "PATCH" : "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
+          lessonId: editingLessonId || undefined,
           grade,
           classNumber,
           learningDate,
@@ -197,8 +248,19 @@ export default function TeacherLessonSettings({
         throw new Error(result.error ?? "수업 설정을 저장하지 못했습니다.");
       }
 
-      setLessons((current) => [result.lesson!, ...current]);
-      setMessage("수업과 문항 정보가 Supabase에 저장되었습니다.");
+      setLessons((current) =>
+        editingLessonId
+          ? current.map((lesson) =>
+              lesson.id === result.lesson?.id ? result.lesson : lesson,
+            )
+          : [result.lesson!, ...current],
+      );
+      setMessage(
+        editingLessonId
+          ? "지난 수업 설정을 변경했습니다."
+          : "수업과 문항 정보가 Supabase에 저장되었습니다.",
+      );
+      setEditingLessonId("");
     } catch (reason) {
       setError(
         reason instanceof Error
@@ -247,10 +309,14 @@ export default function TeacherLessonSettings({
         <section className="panel lesson-form-card">
           <div className="panel-head">
             <div>
-              <h2>수업 기본 정보</h2>
+              <h2>
+                {editingLessonId ? "지난 수업 설정 수정" : "수업 기본 정보"}
+              </h2>
               <p>학년·반·날짜·교시를 기준으로 학생 화면과 연결됩니다.</p>
             </div>
-            <span className="teacher-only-badge">교사 전용</span>
+            <span className="teacher-only-badge">
+              {editingLessonId ? "수정 중" : "교사 전용"}
+            </span>
           </div>
 
           <div className="lesson-meta-grid">
@@ -421,6 +487,11 @@ export default function TeacherLessonSettings({
           {message && <p className="save-message success">{message}</p>}
           {error && <p className="save-message error">{error}</p>}
           <div className="settings-actions">
+            {editingLessonId && (
+              <button className="secondary" onClick={resetForm}>
+                수정 취소
+              </button>
+            )}
             <button
               className="secondary"
               onClick={() =>
@@ -436,7 +507,11 @@ export default function TeacherLessonSettings({
               disabled={saving || !ready}
               onClick={saveLesson}
             >
-              {saving ? "저장 중..." : "Supabase에 수업 저장하기 →"}
+              {saving
+                ? "저장 중..."
+                : editingLessonId
+                  ? "지난 수업 변경 저장하기 →"
+                  : "Supabase에 수업 저장하기 →"}
             </button>
           </div>
         </section>
@@ -463,12 +538,15 @@ export default function TeacherLessonSettings({
           </div>
 
           <div className="saved-lessons">
-            <h4>최근 저장한 수업</h4>
+            <h4>지난 수업 관리</h4>
             {loading ? (
               <p>불러오는 중...</p>
             ) : lessons.length ? (
-              lessons.slice(0, 4).map((lesson) => (
-                <div key={lesson.id}>
+              lessons.map((lesson) => (
+                <div
+                  className={editingLessonId === lesson.id ? "editing" : ""}
+                  key={lesson.id}
+                >
                   <b>
                     {lesson.grade}학년 {lesson.class_number}반
                   </b>
@@ -476,6 +554,12 @@ export default function TeacherLessonSettings({
                     {lesson.learning_date} {formatLessonPeriod(lesson.learning_time)}
                   </span>
                   <small>{lesson.question_count}개 문항</small>
+                  <button
+                    type="button"
+                    onClick={() => editLesson(lesson)}
+                  >
+                    {editingLessonId === lesson.id ? "수정 중" : "수정"}
+                  </button>
                 </div>
               ))
             ) : (
