@@ -272,6 +272,25 @@ export default function TeacherDashboard() {
         .slice(0, 3),
     [selectedLesson?.questions, selectedResponses],
   );
+  const afterDifficultQuestions = useMemo(
+    () =>
+      (selectedLesson?.questions ?? [])
+        .map((question) => {
+          const key = String(question.number);
+          return {
+            ...question,
+            count: comparableResults.filter(
+              (result) =>
+                result.before.answers?.[key] !== "solved" &&
+                result.after.answers?.[key] === "unsolved",
+            ).length,
+          };
+        })
+        .filter((question) => question.count > 0)
+        .sort((left, right) => right.count - left.count)
+        .slice(0, 3),
+    [comparableResults, selectedLesson?.questions],
+  );
   const comparisonAnswerCount =
     comparableResults.length * (selectedLesson?.question_count ?? 0);
   const beforeSolvedCount = comparableResults.reduce(
@@ -762,36 +781,82 @@ export default function TeacherDashboard() {
           )}
         </section>
 
-        <section className="panel dashboard-difficult-card">
-          <div className="panel-head">
-            <div>
-              <h2>어려운 문제 TOP 3</h2>
-              <p>미해결 응답이 많은 문항입니다.</p>
-            </div>
-          </div>
-          {respondedCount ? (
-            difficultQuestions.map((question, index) => (
-              <div className="dashboard-difficult-row" key={question.number}>
-                <strong>{index + 1}</strong>
-                <div>
-                  <b>{question.number}번 · {question.title}</b>
-                  <div>
-                    <i
-                      style={{
-                        width: `${(question.count / respondedCount) * 100}%`,
-                      }}
-                    />
-                  </div>
-                </div>
-                <span>
-                  {Math.round((question.count / respondedCount) * 100)}%
-                </span>
+        <aside className="dashboard-difficulty-column">
+          <section className="panel dashboard-difficult-card">
+            <div className="panel-head">
+              <div>
+                <h2>활동 전 어려운 문제 TOP 3</h2>
+                <p>첫 응답에서 미해결이 많은 문항입니다.</p>
               </div>
-            ))
-          ) : (
-            <div className="dashboard-card-empty">아직 제출된 설문이 없어요.</div>
-          )}
-        </section>
+            </div>
+            {respondedCount ? (
+              difficultQuestions.map((question, index) => (
+                <div className="dashboard-difficult-row" key={question.number}>
+                  <strong>{index + 1}</strong>
+                  <div>
+                    <b>{question.number}번 · {question.title}</b>
+                    <div>
+                      <i
+                        style={{
+                          width: `${(question.count / respondedCount) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span>
+                    {Math.round((question.count / respondedCount) * 100)}%
+                  </span>
+                </div>
+              ))
+            ) : (
+              <div className="dashboard-card-empty">
+                아직 제출된 설문이 없어요.
+              </div>
+            )}
+          </section>
+
+          <section className="panel dashboard-difficult-card dashboard-after-difficult-card">
+            <div className="panel-head">
+              <div>
+                <h2>활동 후 미해결 문제 TOP 3</h2>
+                <p>배움짝 활동 후에도 미해결 응답이 많은 문항입니다.</p>
+              </div>
+              <span className="trend">{comparableResults.length}명 응답</span>
+            </div>
+            {!comparableResults.length ? (
+              <div className="dashboard-card-empty">
+                활동 후 결과가 입력되면 표시됩니다.
+              </div>
+            ) : !afterDifficultQuestions.length ? (
+              <div className="dashboard-card-empty">
+                활동 후 모든 대상 문항을 해결했어요.
+              </div>
+            ) : (
+              afterDifficultQuestions.map((question, index) => (
+                <div className="dashboard-difficult-row" key={question.number}>
+                  <strong>{index + 1}</strong>
+                  <div>
+                    <b>{question.number}번 · {question.title}</b>
+                    <div>
+                      <i
+                        style={{
+                          width: `${(question.count / comparableResults.length) * 100}%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                  <span>
+                    {question.count}명 ·{" "}
+                    {Math.round(
+                      (question.count / comparableResults.length) * 100,
+                    )}
+                    %
+                  </span>
+                </div>
+              ))
+            )}
+          </section>
+        </aside>
       </div>
 
       <section className="panel dashboard-pairs-card">

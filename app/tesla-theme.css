@@ -2283,6 +2283,26 @@ label,
   font-size: 13px;
 }
 
+.dashboard-difficulty-column {
+  display: grid;
+  align-content: start;
+  gap: 17px;
+}
+
+.teacher-dashboard-page .dashboard-after-difficult-card .panel-head {
+  align-items: flex-start;
+}
+
+.teacher-dashboard-page .dashboard-after-difficult-card .trend {
+  white-space: nowrap;
+}
+
+.teacher-dashboard-page
+  .dashboard-after-difficult-card
+  .dashboard-difficult-row {
+  grid-template-columns: 30px minmax(0, 1fr) 82px;
+}
+
 .teacher-dashboard-page .dashboard-difficult-row > div > b {
   max-width: 220px;
   color: #171a20;
