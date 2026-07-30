@@ -137,8 +137,8 @@ export async function POST(request: Request) {
     .map((question) => String(question.number));
   const answerKeys = Object.keys(body.answers);
   const validAnswers =
-    expectedNumbers.length === lesson.question_count &&
     answerKeys.length === expectedNumbers.length &&
+    answerKeys.every((number) => expectedNumbers.includes(number)) &&
     expectedNumbers.every(
       (number) =>
         body.answers?.[number] === "solved" ||

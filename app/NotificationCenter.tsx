@@ -14,6 +14,7 @@ type Lesson = {
 
 type Student = {
   user_id: string;
+  display_name: string;
   grade: number;
   class_number: number;
 };
@@ -23,6 +24,7 @@ type CompletionRecord = {
   student_user_id: string;
   completed_at: string | null;
   updated_at: string | null;
+  reflection?: string | null;
 };
 
 type Pairing = {
@@ -48,7 +50,7 @@ type StudentLesson = Lesson & {
 
 type NotificationItem = {
   id: string;
-  type: "survey" | "activity" | "matching" | "feedback";
+  type: "survey" | "activity" | "reflection" | "matching" | "feedback";
   title: string;
   description: string;
   occurredAt: string;
@@ -221,6 +223,24 @@ export default function NotificationCenter({
             activityRows.map((record) => record.student_user_id),
           );
 
+          for (const record of activityRows) {
+            if (!record.reflection?.trim()) continue;
+            const student = students.find(
+              (item) => item.user_id === record.student_user_id,
+            );
+            const occurredAt =
+              record.updated_at ??
+              record.completed_at ??
+              `${lesson.learning_date}T${lesson.learning_time}`;
+            nextItems.push({
+              id: `reflection-${lesson.id}-${record.student_user_id}-${occurredAt}`,
+              type: "reflection",
+              title: `${student?.display_name ?? "학생"} 학생 활동 소감 도착`,
+              description: `${lesson.grade}학년 ${lesson.class_number}반 · ${formatLessonPeriod(lesson.learning_time)} · ${lesson.subject} 수업의 배움짝 활동 소감이 저장됐어요.`,
+              occurredAt,
+            });
+          }
+
           if (
             pairedStudentIds.size > 0 &&
             activityStudentIds.size === pairedStudentIds.size
@@ -369,6 +389,8 @@ export default function NotificationCenter({
                       ? "✓"
                       : item.type === "feedback"
                         ? "✎"
+                      : item.type === "reflection"
+                        ? "소"
                       : item.type === "matching"
                         ? "짝"
                         : "↔"}

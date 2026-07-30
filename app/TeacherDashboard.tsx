@@ -102,8 +102,13 @@ export default function TeacherDashboard() {
   );
 
   useEffect(() => {
-    fetch("/api/class-results", { cache: "no-store" })
-      .then(async (response) => {
+    let active = true;
+
+    const loadDashboard = async () => {
+      try {
+        const response = await fetch("/api/class-results", {
+          cache: "no-store",
+        });
         const data = (await response.json()) as {
           lessons?: Lesson[];
           students?: Student[];
@@ -116,6 +121,7 @@ export default function TeacherDashboard() {
         if (!response.ok) {
           throw new Error(data.error ?? "대시보드 자료를 불러오지 못했습니다.");
         }
+        if (!active) return;
         const nextLessons = data.lessons ?? [];
         setLessons(nextLessons);
         setStudents(data.students ?? []);
@@ -123,16 +129,33 @@ export default function TeacherDashboard() {
         setPairings(data.pairings ?? []);
         setPostActivityResponses(data.postActivityResponses ?? []);
         setFeedbacks(data.feedbacks ?? []);
-        setLessonId(nextLessons[0]?.id ?? "");
-      })
-      .catch((reason) =>
+        setLessonId((current) =>
+          current && nextLessons.some((lesson) => lesson.id === current)
+            ? current
+            : (nextLessons[0]?.id ?? ""),
+        );
+        setError("");
+      } catch (reason) {
+        if (!active) return;
         setError(
           reason instanceof Error
             ? reason.message
             : "대시보드 자료를 불러오는 중 오류가 발생했습니다.",
-        ),
-      )
-      .finally(() => setLoading(false));
+        );
+      } finally {
+        if (active) setLoading(false);
+      }
+    };
+
+    void loadDashboard();
+    const timer = window.setInterval(loadDashboard, 30_000);
+    window.addEventListener("focus", loadDashboard);
+
+    return () => {
+      active = false;
+      window.clearInterval(timer);
+      window.removeEventListener("focus", loadDashboard);
+    };
   }, []);
 
   const selectedLesson =
