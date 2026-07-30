@@ -143,7 +143,16 @@ export default function Home() {
   return (
     <div className="app-shell">
       <aside className="sidebar">
-        <div className="logo"><span>✦</span> 배움짝</div>
+        <button
+          type="button"
+          className="logo logo-home-button"
+          aria-label="배움짝 메인페이지로 이동"
+          onClick={() =>
+            setScreen(isTeacher ? "admin" : "student-dashboard")
+          }
+        >
+          <span>✦</span> 배움짝
+        </button>
         <div className="school-pill">{schoolLabel}<span>⌄</span></div>
         <div className="side-label">MENU</div>
         {isTeacher ? (

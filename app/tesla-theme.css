@@ -287,6 +287,20 @@ label {
   font-size: 25px;
 }
 
+.logo-home-button {
+  width: max-content;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.logo-home-button:focus-visible {
+  border-radius: 4px;
+  outline: 3px solid color-mix(in srgb, var(--tesla-blue) 35%, transparent);
+  outline-offset: 4px;
+}
+
 .logo span,
 .login-mark span {
   color: var(--tesla-blue);
