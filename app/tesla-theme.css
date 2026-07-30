@@ -1347,6 +1347,18 @@ label,
   gap: 8px;
 }
 
+.student-subject-editor {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 160px;
+  gap: 12px;
+  align-items: end;
+}
+
+.student-subject-editor > label {
+  margin-bottom: 0;
+}
+
 .student-edit-error {
   grid-column: 1 / -1;
   margin: 0;
@@ -1420,6 +1432,10 @@ label,
   .student-edit-actions button {
     flex: 1;
   }
+
+  .student-subject-editor {
+    grid-template-columns: 1fr;
+  }
 }
 
 .teacher-dashboard-page .dashboard-hero h1 {
@@ -1427,6 +1443,104 @@ label,
   font-size: clamp(36px, 4vw, 46px);
   font-weight: 600;
   line-height: 1.18;
+}
+
+.subject-multi-select {
+  width: 100%;
+  margin: 0;
+  padding: 16px;
+  border: 1px solid #c8ccd2;
+  border-radius: 4px;
+  background: #f7f8fa;
+}
+
+.subject-multi-select legend {
+  padding: 0 6px;
+  color: #171a20;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.subject-multi-select > p {
+  margin: 0 0 12px;
+  color: #5c636d;
+  font-size: 13px;
+}
+
+.subject-multi-select > div {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.subject-multi-select label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-height: 42px;
+  margin: 0;
+  padding: 8px 10px;
+  border: 1px solid #d8dce1;
+  border-radius: 4px;
+  background: #fff;
+  color: #171a20 !important;
+  cursor: pointer;
+}
+
+.subject-multi-select input {
+  width: 18px;
+  min-height: 18px;
+  margin: 0;
+  accent-color: #174ea6;
+}
+
+.active-subject-switch {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0;
+  color: #313842 !important;
+  font-size: 13px !important;
+  white-space: nowrap;
+}
+
+.active-subject-switch select {
+  min-width: 110px;
+  min-height: 38px;
+  margin: 0;
+  padding: 7px 32px 7px 10px;
+  border: 1px solid #c8ccd2;
+  background: #fff;
+  color: #171a20;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.subject-switch-error {
+  margin: 14px 28px 0;
+  color: #a83228;
+  font-size: 13px;
+  font-weight: 700;
+}
+
+@media (max-width: 800px) {
+  .subject-multi-select > div {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .active-subject-switch span {
+    display: none;
+  }
+}
+
+@media (max-width: 520px) {
+  .subject-multi-select > div {
+    grid-template-columns: 1fr;
+  }
+
+  .active-subject-switch select {
+    min-width: 92px;
+  }
 }
 
 .teacher-dashboard-page .dashboard-hero p:not(.overline) {

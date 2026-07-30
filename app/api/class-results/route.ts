@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { normalizeSubjects } from "@/app/subjects";
 
 function readableSupabaseError(message: string) {
   const normalized = message.toLowerCase();
@@ -100,7 +101,7 @@ export async function GET() {
       teacher.supabase
         .from("profiles")
         .select(
-          "user_id, display_name, grade, class_number, student_number, created_at",
+          "user_id, display_name, grade, class_number, student_number, subject, subjects, created_at",
         )
         .eq("role", "student")
         .order("grade")
@@ -152,7 +153,12 @@ export async function GET() {
     (profile) =>
       profile.grade &&
       profile.class_number &&
-      classKeys.has(`${profile.grade}-${profile.class_number}`),
+      classKeys.has(`${profile.grade}-${profile.class_number}`) &&
+      (
+        normalizeSubjects(profile.subjects).includes(teacher.subject) ||
+        (!normalizeSubjects(profile.subjects).length &&
+          profile.subject === teacher.subject)
+      ),
   );
   const studentIds = new Set(students.map((student) => student.user_id));
 

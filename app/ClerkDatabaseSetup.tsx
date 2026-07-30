@@ -10,8 +10,9 @@ import { useEffect, useState } from "react";
 import { ComicBubble, OfficeCharacter } from "./ComicUI";
 import {
   DEFAULT_TEACHER_SUBJECT,
-  TEACHER_SUBJECTS,
+  normalizeSubjects,
 } from "./subjects";
+import SubjectMultiSelect from "./SubjectMultiSelect";
 
 export type AccountRole = "student" | "admin";
 
@@ -22,6 +23,7 @@ export type AccountProfile = {
   classNumber: number | null;
   studentNumber: number | null;
   subject: string | null;
+  subjects: string[];
   databaseSynced: boolean;
   syncWarning?: string;
 };
@@ -33,6 +35,7 @@ type SavedProfile = {
   classNumber?: number;
   studentNumber?: number;
   subject?: string;
+  subjects?: string[];
 };
 
 type ApiProfile = {
@@ -42,6 +45,7 @@ type ApiProfile = {
   class_number: number | null;
   student_number: number | null;
   subject: string | null;
+  subjects: string[] | null;
 };
 
 function normalizeProfile(
@@ -56,6 +60,12 @@ function normalizeProfile(
     classNumber: profile.class_number,
     studentNumber: profile.student_number,
     subject: profile.subject,
+    subjects:
+      normalizeSubjects(profile.subjects).length > 0
+        ? normalizeSubjects(profile.subjects)
+        : profile.subject
+          ? [profile.subject]
+          : [DEFAULT_TEACHER_SUBJECT],
     databaseSynced,
     syncWarning,
   };
@@ -73,6 +83,9 @@ export default function ClerkDatabaseSetup({
   const [classNumber, setClassNumber] = useState(1);
   const [studentNumber, setStudentNumber] = useState(1);
   const [subject, setSubject] = useState(DEFAULT_TEACHER_SUBJECT);
+  const [subjects, setSubjects] = useState<string[]>([
+    DEFAULT_TEACHER_SUBJECT,
+  ]);
   const [checkingProfile, setCheckingProfile] = useState(false);
   const [profileChecked, setProfileChecked] = useState(false);
   const [saving, setSaving] = useState(false);
@@ -91,6 +104,12 @@ export default function ClerkDatabaseSetup({
     setClassNumber(saved.classNumber ?? 1);
     setStudentNumber(saved.studentNumber ?? 1);
     setSubject(saved.subject ?? DEFAULT_TEACHER_SUBJECT);
+    const savedSubjects = normalizeSubjects(saved.subjects);
+    setSubjects(
+      savedSubjects.length
+        ? savedSubjects
+        : [saved.subject ?? DEFAULT_TEACHER_SUBJECT],
+    );
 
     let active = true;
     setCheckingProfile(true);
@@ -119,6 +138,7 @@ export default function ClerkDatabaseSetup({
         if (!active || !profile) return;
         const profileIsComplete =
           Boolean(profile.subject) &&
+          profile.subjects.length > 0 &&
           ((profile.role === "admin") ||
           Boolean(
             profile.grade &&
@@ -160,7 +180,13 @@ export default function ClerkDatabaseSetup({
         grade <= 3 &&
         classNumber >= 1 &&
         studentNumber >= 1);
-    if (!user || !name.trim() || !studentFieldsValid) return;
+    if (
+      !user ||
+      !name.trim() ||
+      !studentFieldsValid ||
+      subjects.length === 0 ||
+      !subjects.includes(subject)
+    ) return;
 
     setSaving(true);
     setSaveError("");
@@ -174,6 +200,7 @@ export default function ClerkDatabaseSetup({
         classNumber: role === "student" ? classNumber : null,
         studentNumber: role === "student" ? studentNumber : null,
         subject,
+        subjects,
       };
 
       await user.update({
@@ -191,6 +218,7 @@ export default function ClerkDatabaseSetup({
           classNumber: role === "student" ? classNumber : null,
           studentNumber: role === "student" ? studentNumber : null,
           subject,
+          subjects,
         }),
       });
       const result = (await response.json()) as {
@@ -336,19 +364,31 @@ export default function ClerkDatabaseSetup({
               placeholder={role === "student" ? "예: 박서연" : "예: 김선생님"}
             />
           </label>
+          <SubjectMultiSelect
+            value={subjects}
+            label={role === "admin" ? "담당 교과목" : "학습 교과목"}
+            onChange={(nextSubjects) => {
+              setSubjects(nextSubjects);
+              if (!nextSubjects.includes(subject)) {
+                setSubject(nextSubjects[0] ?? DEFAULT_TEACHER_SUBJECT);
+              }
+            }}
+          />
+          {subjects.length > 0 && (
+            <label>
+              첫 화면 조회 과목
+              <select
+                value={subject}
+                onChange={(event) => setSubject(event.target.value)}
+              >
+                {subjects.map((value) => (
+                  <option key={value} value={value}>{value}</option>
+                ))}
+              </select>
+            </label>
+          )}
           {role === "student" && (
             <>
-              <label>
-                학습 과목
-                <select
-                  value={subject}
-                  onChange={(event) => setSubject(event.target.value)}
-                >
-                  {TEACHER_SUBJECTS.map((value) => (
-                    <option key={value} value={value}>{value}</option>
-                  ))}
-                </select>
-              </label>
               <div className="student-profile-fields">
                 <label>
                   학년
@@ -390,19 +430,6 @@ export default function ClerkDatabaseSetup({
               </div>
             </>
           )}
-          {role === "admin" && (
-            <label>
-              담당 교과목
-              <select
-                value={subject}
-                onChange={(event) => setSubject(event.target.value)}
-              >
-                {TEACHER_SUBJECTS.map((value) => (
-                  <option key={value} value={value}>{value}</option>
-                ))}
-              </select>
-            </label>
-          )}
           {saveError && <p className="profile-save-error">{saveError}</p>}
           <button
             className="login-button"
@@ -410,8 +437,9 @@ export default function ClerkDatabaseSetup({
               saving ||
               !name.trim() ||
               (role === "student" &&
-                (!grade || !classNumber || !studentNumber || !subject)) ||
-              (role === "admin" && !subject)
+                (!grade || !classNumber || !studentNumber)) ||
+              subjects.length === 0 ||
+              !subjects.includes(subject)
             }
             onClick={saveProfile}
           >

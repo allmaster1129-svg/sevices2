@@ -43,9 +43,12 @@ type Screen =
 
 export default function Home() {
   const { signOut } = useClerk();
+  const { user } = useUser();
   const [screen, setScreen] = useState<Screen>("login");
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [switchingSubject, setSwitchingSubject] = useState(false);
+  const [subjectSwitchError, setSubjectSwitchError] = useState("");
   const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
@@ -77,6 +80,61 @@ export default function Home() {
       setScreen("login");
     } finally {
       setSigningOut(false);
+    }
+  };
+  const handleSubjectChange = async (nextSubject: string) => {
+    if (
+      !user ||
+      nextSubject === profile.subject ||
+      !profile.subjects.includes(nextSubject)
+    ) return;
+
+    setSwitchingSubject(true);
+    setSubjectSwitchError("");
+    try {
+      await user.update({
+        unsafeMetadata: {
+          ...user.unsafeMetadata,
+          subject: nextSubject,
+          subjects: profile.subjects,
+        },
+      });
+      const response = await fetch("/api/profile", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          role: profile.role,
+          displayName: profile.displayName,
+          grade: profile.grade,
+          classNumber: profile.classNumber,
+          studentNumber: profile.studentNumber,
+          subject: nextSubject,
+          subjects: profile.subjects,
+        }),
+      });
+      const result = (await response.json()) as {
+        profile?: {
+          subject: string | null;
+          subjects: string[] | null;
+        };
+        error?: string;
+      };
+      if (!response.ok || !result.profile?.subject) {
+        throw new Error(result.error ?? "조회 과목을 변경하지 못했습니다.");
+      }
+      setProfile({
+        ...profile,
+        subject: result.profile.subject,
+        subjects: result.profile.subjects ?? profile.subjects,
+      });
+    } catch (reason) {
+      setSubjectSwitchError(
+        reason instanceof Error
+          ? reason.message
+          : "조회 과목을 변경하지 못했습니다.",
+      );
+    } finally {
+      setSwitchingSubject(false);
     }
   };
 
@@ -149,28 +207,47 @@ export default function Home() {
         <header className="topbar">
           <div className="breadcrumb">배움짝 <span>/</span> {title}</div>
           <div className="top-actions">
-            <NotificationCenter isTeacher={isTeacher} />
+            <label className="active-subject-switch">
+              <span>조회 과목</span>
+              <select
+                value={profile.subject ?? profile.subjects[0]}
+                disabled={switchingSubject}
+                onChange={(event) => handleSubjectChange(event.target.value)}
+              >
+                {profile.subjects.map((subject) => (
+                  <option key={subject} value={subject}>{subject}</option>
+                ))}
+              </select>
+            </label>
+            <NotificationCenter
+              key={`notifications-${profile.subject}`}
+              isTeacher={isTeacher}
+            />
             <span className="account-role-label">
               {isTeacher ? `${profile.subject ?? ""} 교사` : "학생"}
             </span>
           </div>
         </header>
+        {subjectSwitchError && (
+          <p className="subject-switch-error">{subjectSwitchError}</p>
+        )}
         {screen === "admin" ? (
-          <TeacherDashboard />
+          <TeacherDashboard key={`dashboard-${profile.subject}`} />
         ) : screen === "student" ? (
-          <StudentLessonDashboard profile={profile} />
+          <StudentLessonDashboard key={`student-${profile.subject}`} profile={profile} />
         ) : screen === "student-results" ? (
-          <StudentActivityResults profile={profile} />
+          <StudentActivityResults key={`results-${profile.subject}`} profile={profile} />
         ) : screen === "matching" ? (
-          <TeacherPairMatching />
+          <TeacherPairMatching key={`matching-${profile.subject}`} />
         ) : screen === "settings-roster" ? (
-          <TeacherClassResults />
+          <TeacherClassResults key={`roster-${profile.subject}`} />
         ) : screen === "settings-students" ? (
-          <TeacherStudentManagement />
+          <TeacherStudentManagement key={`students-${profile.subject}`} />
         ) : screen === "guide" ? (
           <UsageGuide isTeacher={isTeacher} />
         ) : (
           <TeacherLessonSettings
+            key={`settings-${profile.subject}`}
             databaseSynced={profile.databaseSynced}
             syncWarning={profile.syncWarning}
             subject={profile.subject ?? "수학"}

@@ -5,8 +5,8 @@ import { useUser } from "@clerk/nextjs";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import {
   DEFAULT_TEACHER_SUBJECT,
-  TEACHER_SUBJECTS,
 } from "./subjects";
+import SubjectMultiSelect from "./SubjectMultiSelect";
 
 type ApiProfile = {
   role: "student" | "admin";
@@ -15,6 +15,7 @@ type ApiProfile = {
   class_number: number | null;
   student_number: number | null;
   subject: string | null;
+  subjects: string[] | null;
 };
 
 export default function StudentProfileEditor({
@@ -33,11 +34,14 @@ export default function StudentProfileEditor({
   const [subject, setSubject] = useState(
     profile.subject ?? DEFAULT_TEACHER_SUBJECT,
   );
+  const [subjects, setSubjects] = useState(
+    profile.subjects.length ? profile.subjects : [subject],
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
   async function saveProfile() {
-    if (!user) return;
+    if (!user || !subjects.length || !subjects.includes(subject)) return;
     setSaving(true);
     setError("");
 
@@ -49,6 +53,7 @@ export default function StudentProfileEditor({
           classNumber,
           studentNumber,
           subject,
+          subjects,
         },
       });
 
@@ -62,6 +67,7 @@ export default function StudentProfileEditor({
           classNumber,
           studentNumber,
           subject,
+          subjects,
         }),
       });
       const result = (await response.json()) as {
@@ -82,6 +88,7 @@ export default function StudentProfileEditor({
         classNumber: result.profile.class_number,
         studentNumber: result.profile.student_number,
         subject: result.profile.subject,
+        subjects: result.profile.subjects ?? subjects,
         databaseSynced: result.databaseSynced ?? true,
         syncWarning: result.syncWarning,
       });
@@ -124,10 +131,20 @@ export default function StudentProfileEditor({
         </div>
         <b className="profile-editor-name">{profile.displayName}</b>
         <div className="profile-editor-fields">
+          <SubjectMultiSelect
+            value={subjects}
+            label="학습 교과목"
+            onChange={(nextSubjects) => {
+              setSubjects(nextSubjects);
+              if (!nextSubjects.includes(subject)) {
+                setSubject(nextSubjects[0] ?? DEFAULT_TEACHER_SUBJECT);
+              }
+            }}
+          />
           <label>
-            과목
+            현재 조회 과목
             <select value={subject} onChange={(event) => setSubject(event.target.value)}>
-              {TEACHER_SUBJECTS.map((value) => (
+              {subjects.map((value) => (
                 <option key={value} value={value}>{value}</option>
               ))}
             </select>
@@ -160,7 +177,12 @@ export default function StudentProfileEditor({
         {error && <p className="profile-editor-error">{error}</p>}
         <div className="profile-editor-actions">
           <button type="button" className="secondary" onClick={onClose}>취소</button>
-          <button type="button" className="primary" disabled={saving} onClick={saveProfile}>
+          <button
+            type="button"
+            className="primary"
+            disabled={saving || subjects.length === 0}
+            onClick={saveProfile}
+          >
             {saving ? "저장 중..." : "학급 정보 저장하기"}
           </button>
         </div>

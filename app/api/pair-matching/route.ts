@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { normalizeSubjects } from "@/app/subjects";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -12,6 +13,8 @@ type StudentProfile = {
   user_id: string;
   display_name: string;
   student_number: number | null;
+  subject: string | null;
+  subjects: string[] | null;
 };
 
 type StudentWithAnswers = StudentProfile & {
@@ -129,7 +132,7 @@ export async function POST(request: Request) {
     await Promise.all([
       teacher.supabase
         .from("profiles")
-        .select("user_id, display_name, student_number")
+        .select("user_id, display_name, student_number, subject, subjects")
         .eq("role", "student")
         .eq("grade", lesson.grade)
         .eq("class_number", lesson.class_number)
@@ -148,7 +151,12 @@ export async function POST(request: Request) {
     );
   }
 
-  const profiles = (profileRows ?? []) as StudentProfile[];
+  const profiles = ((profileRows ?? []) as StudentProfile[]).filter(
+    (profile) =>
+      normalizeSubjects(profile.subjects).includes(teacher.subject) ||
+      (!normalizeSubjects(profile.subjects).length &&
+        profile.subject === teacher.subject),
+  );
   const profileById = new Map(
     profiles.map((profile) => [profile.user_id, profile]),
   );

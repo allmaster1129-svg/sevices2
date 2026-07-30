@@ -25,7 +25,7 @@ async function requireStudent() {
   const supabase = await createClient();
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("role, grade, class_number")
+    .select("role, grade, class_number, subject, subjects")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -33,7 +33,8 @@ async function requireStudent() {
   if (
     profile?.role !== "student" ||
     !profile.grade ||
-    !profile.class_number
+    !profile.class_number ||
+    !profile.subject
   ) {
     return {
       error: "학년과 반이 등록된 학생 계정만 결과를 저장할 수 있습니다.",
@@ -68,6 +69,7 @@ export async function POST(request: Request) {
     .eq("id", body.lessonId)
     .eq("grade", student.profile.grade)
     .eq("class_number", student.profile.class_number)
+    .eq("subject", student.profile.subject)
     .maybeSingle();
 
   if (lessonError) {

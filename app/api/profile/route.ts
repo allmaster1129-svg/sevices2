@@ -4,6 +4,7 @@ import { createClient } from "@/utils/supabase/server";
 import {
   DEFAULT_TEACHER_SUBJECT,
   isTeacherSubject,
+  normalizeSubjects,
 } from "@/app/subjects";
 
 type ProfileInput = {
@@ -13,6 +14,7 @@ type ProfileInput = {
   classNumber?: number | null;
   studentNumber?: number | null;
   subject?: string | null;
+  subjects?: string[] | null;
 };
 
 type ClerkProfileMetadata = {
@@ -22,6 +24,7 @@ type ClerkProfileMetadata = {
   classNumber?: number | null;
   studentNumber?: number | null;
   subject?: string | null;
+  subjects?: string[] | null;
 };
 
 function validInteger(value: number | null | undefined, min: number, max: number) {
@@ -46,6 +49,10 @@ async function getClerkProfileFallback() {
   const user = await currentUser();
   const metadata = user?.unsafeMetadata as ClerkProfileMetadata | undefined;
   if (!metadata?.role) return null;
+  const subjects = normalizeSubjects(metadata.subjects);
+  const activeSubject = isTeacherSubject(metadata.subject)
+    ? metadata.subject
+    : subjects[0] ?? DEFAULT_TEACHER_SUBJECT;
 
   return {
     role: metadata.role,
@@ -56,7 +63,8 @@ async function getClerkProfileFallback() {
       metadata.role === "student" ? (metadata.classNumber ?? null) : null,
     student_number:
       metadata.role === "student" ? (metadata.studentNumber ?? null) : null,
-    subject: metadata.subject ?? DEFAULT_TEACHER_SUBJECT,
+    subject: activeSubject,
+    subjects: subjects.length ? subjects : [activeSubject],
   };
 }
 
@@ -69,7 +77,7 @@ export async function GET() {
   const supabase = await createClient();
   const { data, error } = await supabase
     .from("profiles")
-    .select("role, display_name, grade, class_number, student_number, subject")
+    .select("role, display_name, grade, class_number, student_number, subject, subjects")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -119,9 +127,14 @@ export async function POST(request: Request) {
     );
   }
 
-  if (!isTeacherSubject(body.subject)) {
+  const subjects = normalizeSubjects(body.subjects);
+  if (
+    !isTeacherSubject(body.subject) ||
+    subjects.length === 0 ||
+    !subjects.includes(body.subject)
+  ) {
     return NextResponse.json(
-      { error: "과목을 선택해 주세요." },
+      { error: "교과목을 한 개 이상 선택하고 현재 조회 과목을 지정해 주세요." },
       { status: 400 },
     );
   }
@@ -147,11 +160,12 @@ export async function POST(request: Request) {
         class_number: classNumber,
         student_number: studentNumber,
         subject,
+        subjects,
         updated_at: new Date().toISOString(),
       },
       { onConflict: "user_id" },
     )
-    .select("role, display_name, grade, class_number, student_number, subject")
+    .select("role, display_name, grade, class_number, student_number, subject, subjects")
     .single();
 
   if (error) {
@@ -165,6 +179,7 @@ export async function POST(request: Request) {
             class_number: classNumber,
             student_number: studentNumber,
             subject,
+            subjects,
           },
           databaseSynced: false,
           syncWarning: syncWarning(),

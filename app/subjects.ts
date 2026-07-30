@@ -20,3 +20,10 @@ export function isTeacherSubject(value: unknown): value is string {
     TEACHER_SUBJECTS.includes(value as (typeof TEACHER_SUBJECTS)[number])
   );
 }
+
+export function normalizeSubjects(value: unknown): string[] {
+  if (!Array.isArray(value)) return [];
+  return Array.from(
+    new Set(value.filter((item): item is string => isTeacherSubject(item))),
+  );
+}

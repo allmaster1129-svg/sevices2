@@ -3,8 +3,9 @@
 import { useEffect, useMemo, useState } from "react";
 import {
   DEFAULT_TEACHER_SUBJECT,
-  TEACHER_SUBJECTS,
+  normalizeSubjects,
 } from "./subjects";
+import SubjectMultiSelect from "./SubjectMultiSelect";
 
 type ManagedClass = {
   grade: number;
@@ -18,12 +19,14 @@ type Student = {
   class_number: number;
   student_number: number;
   subject: string | null;
+  subjects: string[] | null;
   updated_at: string;
 };
 
 type StudentDraft = {
   displayName: string;
   subject: string;
+  subjects: string[];
   grade: string;
   classNumber: string;
   studentNumber: string;
@@ -80,9 +83,13 @@ export default function TeacherStudentManagement() {
 
   function beginEdit(student: Student) {
     setEditingId(student.user_id);
+    const studentSubjects = normalizeSubjects(student.subjects);
     setDraft({
       displayName: student.display_name,
       subject: student.subject ?? DEFAULT_TEACHER_SUBJECT,
+      subjects: studentSubjects.length
+        ? studentSubjects
+        : [student.subject ?? DEFAULT_TEACHER_SUBJECT],
       grade: String(student.grade),
       classNumber: String(student.class_number),
       studentNumber: String(student.student_number),
@@ -104,6 +111,8 @@ export default function TeacherStudentManagement() {
     const studentNumber = Number(draft.studentNumber);
     if (
       !draft.displayName.trim() ||
+      draft.subjects.length === 0 ||
+      !draft.subjects.includes(draft.subject) ||
       !Number.isInteger(grade) ||
       grade < 1 ||
       grade > 3 ||
@@ -129,6 +138,7 @@ export default function TeacherStudentManagement() {
           userId: editingId,
           displayName: draft.displayName,
           subject: draft.subject,
+          subjects: draft.subjects,
           grade,
           classNumber,
           studentNumber,
@@ -267,22 +277,39 @@ export default function TeacherStudentManagement() {
                               }
                             />
                           </label>
-                          <label>
-                            과목
-                            <select
-                              value={draft.subject}
-                              onChange={(event) =>
+                          <div className="student-subject-editor">
+                            <SubjectMultiSelect
+                              value={draft.subjects}
+                              label="교과목"
+                              onChange={(nextSubjects) =>
                                 setDraft({
                                   ...draft,
-                                  subject: event.target.value,
+                                  subjects: nextSubjects,
+                                  subject: nextSubjects.includes(draft.subject)
+                                    ? draft.subject
+                                    : nextSubjects[0] ?? DEFAULT_TEACHER_SUBJECT,
                                 })
                               }
-                            >
-                              {TEACHER_SUBJECTS.map((value) => (
-                                <option key={value} value={value}>{value}</option>
-                              ))}
-                            </select>
-                          </label>
+                            />
+                            {draft.subjects.length > 0 && (
+                              <label>
+                                현재 과목
+                                <select
+                                  value={draft.subject}
+                                  onChange={(event) =>
+                                    setDraft({
+                                      ...draft,
+                                      subject: event.target.value,
+                                    })
+                                  }
+                                >
+                                  {draft.subjects.map((value) => (
+                                    <option key={value} value={value}>{value}</option>
+                                  ))}
+                                </select>
+                              </label>
+                            )}
+                          </div>
                           <label>
                             학년
                             <input
@@ -362,7 +389,11 @@ export default function TeacherStudentManagement() {
                           <span>
                             {student.grade}학년 {student.class_number}반
                           </span>
-                          <span>{student.subject ?? "과목 미설정"}</span>
+                          <span>
+                            {normalizeSubjects(student.subjects).length
+                              ? normalizeSubjects(student.subjects).join(", ")
+                              : student.subject ?? "과목 미설정"}
+                          </span>
                           <button
                             type="button"
                             className="secondary"

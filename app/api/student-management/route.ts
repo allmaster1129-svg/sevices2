@@ -1,7 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
-import { isTeacherSubject } from "@/app/subjects";
+import { isTeacherSubject, normalizeSubjects } from "@/app/subjects";
 
 type StudentUpdateInput = {
   userId?: string;
@@ -10,6 +10,7 @@ type StudentUpdateInput = {
   classNumber?: number;
   studentNumber?: number;
   subject?: string;
+  subjects?: string[];
 };
 
 function validInteger(value: number | undefined, min: number, max: number) {
@@ -114,7 +115,7 @@ export async function GET() {
   const { data, error } = await teacher.supabase
     .from("profiles")
     .select(
-      "user_id, display_name, grade, class_number, student_number, subject, updated_at",
+      "user_id, display_name, grade, class_number, student_number, subject, subjects, updated_at",
     )
     .eq("role", "student")
     .order("grade")
@@ -132,7 +133,12 @@ export async function GET() {
     (student) =>
       student.grade &&
       student.class_number &&
-      managed.classKeys.has(`${student.grade}-${student.class_number}`),
+      managed.classKeys.has(`${student.grade}-${student.class_number}`) &&
+      (
+        normalizeSubjects(student.subjects).includes(teacher.subject) ||
+        (!normalizeSubjects(student.subjects).length &&
+          student.subject === teacher.subject)
+      ),
   );
 
   return NextResponse.json({ classes: managed.classes, students });
@@ -148,10 +154,13 @@ export async function PATCH(request: Request) {
   }
 
   const body = (await request.json()) as StudentUpdateInput;
+  const subjects = normalizeSubjects(body.subjects);
   if (
     !body.userId ||
     !body.displayName?.trim() ||
     !isTeacherSubject(body.subject) ||
+    subjects.length === 0 ||
+    !subjects.includes(body.subject) ||
     !validInteger(body.grade, 1, 3) ||
     !validInteger(body.classNumber, 1, 50) ||
     !validInteger(body.studentNumber, 1, 100)
@@ -235,6 +244,7 @@ export async function PATCH(request: Request) {
       target_class_number: body.classNumber,
       target_student_number: body.studentNumber,
       target_subject: body.subject,
+      target_subjects: subjects,
     },
   );
 
