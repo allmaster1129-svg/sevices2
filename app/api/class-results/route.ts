@@ -83,6 +83,7 @@ export async function GET() {
       responses: [],
       pairings: [],
       postActivityResponses: [],
+      feedbacks: [],
     });
   }
 
@@ -97,6 +98,7 @@ export async function GET() {
     { data: responses, error: responseError },
     { data: pairings, error: pairingError },
     { data: postActivityResponses, error: postActivityError },
+    { data: feedbacks, error: feedbackError },
   ] = await Promise.all([
       teacher.supabase
         .from("profiles")
@@ -134,14 +136,30 @@ export async function GET() {
           "lesson_id",
           lessonRows.map((lesson) => lesson.id),
         ),
+      teacher.supabase
+        .from("lesson_student_feedback")
+        .select(
+          "lesson_id, student_user_id, feedback, source, created_at, updated_at",
+        )
+        .in(
+          "lesson_id",
+          lessonRows.map((lesson) => lesson.id),
+        ),
     ]);
 
-  if (profileError || responseError || pairingError || postActivityError) {
+  if (
+    profileError ||
+    responseError ||
+    pairingError ||
+    postActivityError ||
+    feedbackError
+  ) {
     const message =
       profileError?.message ??
       responseError?.message ??
       pairingError?.message ??
       postActivityError?.message ??
+      feedbackError?.message ??
       "";
     return NextResponse.json(
       { error: readableSupabaseError(message) },
@@ -173,6 +191,9 @@ export async function GET() {
     ),
     postActivityResponses: (postActivityResponses ?? []).filter((response) =>
       studentIds.has(response.student_user_id),
+    ),
+    feedbacks: (feedbacks ?? []).filter((feedback) =>
+      studentIds.has(feedback.student_user_id),
     ),
   });
 }

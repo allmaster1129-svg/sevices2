@@ -1826,6 +1826,157 @@ label,
   font-size: 12px;
 }
 
+.teacher-dashboard-page .dashboard-heatmap-table {
+  min-width: 940px;
+}
+
+.answer-comparison {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+}
+
+.answer-comparison > span {
+  display: grid;
+  gap: 3px;
+  justify-items: center;
+}
+
+.answer-comparison small {
+  color: #626a74;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.student-achievement {
+  display: inline-flex;
+  min-width: 76px;
+  justify-content: center;
+  color: #5c636d;
+  font-size: 12px;
+  white-space: nowrap;
+}
+
+.student-achievement.improved {
+  color: #147447;
+  font-size: 15px;
+}
+
+.student-feedback-button {
+  min-height: 34px;
+  padding: 7px 10px;
+  border: 1px solid #174ea6;
+  border-radius: 4px;
+  background: #fff;
+  color: #174ea6;
+  font-size: 12px;
+  font-weight: 700;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
+.student-feedback-button:hover {
+  background: #edf3ff;
+}
+
+.feedback-modal-backdrop {
+  position: fixed;
+  z-index: 180;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  padding: 24px;
+  background: rgba(23, 26, 32, 0.68);
+}
+
+.feedback-modal {
+  position: relative;
+  width: min(620px, 100%);
+  max-height: calc(100dvh - 48px);
+  overflow-y: auto;
+  padding: 30px;
+  border-radius: 6px;
+  background: #fff;
+  color: #171a20;
+  box-shadow: 0 18px 50px rgba(0, 0, 0, 0.22);
+}
+
+.feedback-modal h2 {
+  margin: 4px 42px 8px 0;
+  color: #171a20;
+  font-size: 25px;
+}
+
+.feedback-modal > p:not(.overline):not(.save-message) {
+  margin: 0 0 18px;
+  color: #4f5660;
+  font-size: 14px;
+}
+
+.feedback-modal textarea {
+  width: 100%;
+  min-height: 190px;
+  resize: vertical;
+  padding: 14px;
+  line-height: 1.65;
+}
+
+.feedback-modal-close {
+  position: absolute;
+  top: 18px;
+  right: 18px;
+  width: 36px;
+  height: 36px;
+  border: 0;
+  border-radius: 4px;
+  background: #f1f2f4;
+  color: #171a20;
+  font-size: 24px;
+  cursor: pointer;
+}
+
+.feedback-character-count {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 8px;
+  color: #626a74;
+  font-size: 12px;
+}
+
+.feedback-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 9px;
+  margin-top: 20px;
+}
+
+.gemini-feedback-button {
+  color: #563a8c !important;
+  border-color: #b9a8df !important;
+}
+
+@media (max-width: 650px) {
+  .feedback-modal-backdrop {
+    align-items: end;
+    padding: 12px;
+  }
+
+  .feedback-modal {
+    max-height: calc(100dvh - 24px);
+    padding: 24px 18px 18px;
+  }
+
+  .feedback-modal-actions {
+    flex-direction: column;
+  }
+
+  .feedback-modal-actions button {
+    width: 100%;
+  }
+}
+
 .teacher-dashboard-page .dashboard-difficult-row > strong {
   width: 30px;
   height: 30px;

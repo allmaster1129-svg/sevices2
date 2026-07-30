@@ -59,6 +59,14 @@ type PostActivityResponse = {
   completed_at: string | null;
 };
 
+type StudentFeedback = {
+  lesson_id: string;
+  student_user_id: string;
+  feedback: string;
+  source: "manual" | "gemini";
+  updated_at: string;
+};
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
@@ -76,9 +84,19 @@ export default function TeacherDashboard() {
   const [postActivityResponses, setPostActivityResponses] = useState<
     PostActivityResponse[]
   >([]);
+  const [feedbacks, setFeedbacks] = useState<StudentFeedback[]>([]);
   const [lessonId, setLessonId] = useState("");
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const [feedbackStudent, setFeedbackStudent] = useState<Student | null>(null);
+  const [feedbackDraft, setFeedbackDraft] = useState("");
+  const [feedbackSource, setFeedbackSource] = useState<"manual" | "gemini">(
+    "manual",
+  );
+  const [feedbackBusy, setFeedbackBusy] = useState<
+    "generate" | "save" | null
+  >(null);
+  const [feedbackError, setFeedbackError] = useState("");
 
   useEffect(() => {
     fetch("/api/class-results", { cache: "no-store" })
@@ -89,6 +107,7 @@ export default function TeacherDashboard() {
           responses?: LessonResponse[];
           pairings?: Pairing[];
           postActivityResponses?: PostActivityResponse[];
+          feedbacks?: StudentFeedback[];
           error?: string;
         };
         if (!response.ok) {
@@ -100,6 +119,7 @@ export default function TeacherDashboard() {
         setResponses(data.responses ?? []);
         setPairings(data.pairings ?? []);
         setPostActivityResponses(data.postActivityResponses ?? []);
+        setFeedbacks(data.feedbacks ?? []);
         setLessonId(nextLessons[0]?.id ?? "");
       })
       .catch((reason) =>
@@ -164,6 +184,25 @@ export default function TeacherDashboard() {
         (response) => response.lesson_id === selectedLesson?.id,
       ),
     [postActivityResponses, selectedLesson?.id],
+  );
+  const postResponseByStudent = useMemo(
+    () =>
+      new Map(
+        selectedPostResponses.map((response) => [
+          response.student_user_id,
+          response,
+        ]),
+      ),
+    [selectedPostResponses],
+  );
+  const feedbackByStudent = useMemo(
+    () =>
+      new Map(
+        feedbacks
+          .filter((feedback) => feedback.lesson_id === selectedLesson?.id)
+          .map((feedback) => [feedback.student_user_id, feedback]),
+      ),
+    [feedbacks, selectedLesson?.id],
   );
   const comparableResults = useMemo(
     () =>
@@ -268,6 +307,100 @@ export default function TeacherDashboard() {
       change: afterRate - beforeRate,
     };
   });
+
+  function openFeedback(student: Student) {
+    const saved = feedbackByStudent.get(student.user_id);
+    setFeedbackStudent(student);
+    setFeedbackDraft(saved?.feedback ?? "");
+    setFeedbackSource(saved?.source ?? "manual");
+    setFeedbackError("");
+  }
+
+  async function generateFeedback() {
+    if (!selectedLesson || !feedbackStudent || feedbackBusy) return;
+    setFeedbackBusy("generate");
+    setFeedbackError("");
+    try {
+      const response = await fetch("/api/student-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "generate",
+          lessonId: selectedLesson.id,
+          studentUserId: feedbackStudent.user_id,
+        }),
+      });
+      const data = (await response.json()) as {
+        generated?: string;
+        error?: string;
+      };
+      if (!response.ok || !data.generated) {
+        throw new Error(data.error ?? "Gemini 피드백을 생성하지 못했습니다.");
+      }
+      setFeedbackDraft(data.generated);
+      setFeedbackSource("gemini");
+    } catch (reason) {
+      setFeedbackError(
+        reason instanceof Error
+          ? reason.message
+          : "Gemini 피드백 생성 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setFeedbackBusy(null);
+    }
+  }
+
+  async function saveFeedback() {
+    if (
+      !selectedLesson ||
+      !feedbackStudent ||
+      !feedbackDraft.trim() ||
+      feedbackBusy
+    ) {
+      return;
+    }
+    setFeedbackBusy("save");
+    setFeedbackError("");
+    try {
+      const response = await fetch("/api/student-feedback", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          action: "save",
+          lessonId: selectedLesson.id,
+          studentUserId: feedbackStudent.user_id,
+          feedback: feedbackDraft,
+          source: feedbackSource,
+        }),
+      });
+      const data = (await response.json()) as {
+        feedback?: StudentFeedback;
+        error?: string;
+      };
+      if (!response.ok || !data.feedback) {
+        throw new Error(data.error ?? "피드백을 저장하지 못했습니다.");
+      }
+      setFeedbacks((current) => [
+        data.feedback!,
+        ...current.filter(
+          (feedback) =>
+            !(
+              feedback.lesson_id === data.feedback?.lesson_id &&
+              feedback.student_user_id === data.feedback?.student_user_id
+            ),
+        ),
+      ]);
+      setFeedbackStudent(null);
+    } catch (reason) {
+      setFeedbackError(
+        reason instanceof Error
+          ? reason.message
+          : "피드백 저장 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setFeedbackBusy(null);
+    }
+  }
 
   if (loading) {
     return (
@@ -448,6 +581,8 @@ export default function TeacherDashboard() {
                     {selectedLesson.questions.map((question) => (
                       <th key={question.number}>{question.number}</th>
                     ))}
+                    <th>성취도 증가</th>
+                    <th>피드백</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -455,6 +590,31 @@ export default function TeacherDashboard() {
                     const studentResponse = responseByStudent.get(
                       student.user_id,
                     );
+                    const postResponse = postResponseByStudent.get(
+                      student.user_id,
+                    );
+                    const beforeSolved = selectedLesson.questions.filter(
+                      (question) =>
+                        studentResponse?.answers?.[
+                          String(question.number)
+                        ] === "solved",
+                    ).length;
+                    const afterSolved = selectedLesson.questions.filter(
+                      (question) => {
+                        const key = String(question.number);
+                        return (
+                          studentResponse?.answers?.[key] === "solved" ||
+                          postResponse?.answers?.[key] === "solved"
+                        );
+                      },
+                    ).length;
+                    const achievementIncrease = postResponse
+                      ? Math.round(
+                          ((afterSolved - beforeSolved) /
+                            selectedLesson.question_count) *
+                            100,
+                        )
+                      : null;
                     return (
                       <tr key={student.user_id}>
                         <td>
@@ -462,36 +622,83 @@ export default function TeacherDashboard() {
                           <b>{student.display_name}</b>
                         </td>
                         {selectedLesson.questions.map((question) => {
-                          const answer =
+                          const beforeAnswer =
                             studentResponse?.answers?.[String(question.number)];
+                          const afterAnswer =
+                            beforeAnswer === "solved"
+                              ? "solved"
+                              : postResponse?.answers?.[
+                                  String(question.number)
+                                ];
                           return (
                             <td key={question.number}>
-                              <i
-                                className={answer ?? "unanswered"}
-                                aria-label={
-                                  answer === "solved"
-                                    ? "해결"
-                                    : answer === "unsolved"
-                                      ? "미해결"
-                                      : "미응답"
-                                }
-                                title={
-                                  answer === "solved"
-                                    ? "해결"
-                                    : answer === "unsolved"
-                                      ? "미해결"
-                                      : "미응답"
-                                }
-                              >
-                                {answer === "solved"
-                                  ? "✓"
-                                  : answer === "unsolved"
-                                    ? "!"
-                                    : "·"}
-                              </i>
+                              <div className="answer-comparison">
+                                <span>
+                                  <small>전</small>
+                                  <i
+                                    className={beforeAnswer ?? "unanswered"}
+                                    title={
+                                      beforeAnswer === "solved"
+                                        ? "활동 전 해결"
+                                        : beforeAnswer === "unsolved"
+                                          ? "활동 전 미해결"
+                                          : "활동 전 미응답"
+                                    }
+                                  >
+                                    {beforeAnswer === "solved"
+                                      ? "✓"
+                                      : beforeAnswer === "unsolved"
+                                        ? "!"
+                                        : "·"}
+                                  </i>
+                                </span>
+                                <span>
+                                  <small>후</small>
+                                  <i
+                                    className={afterAnswer ?? "unanswered"}
+                                    title={
+                                      afterAnswer === "solved"
+                                        ? "활동 후 해결"
+                                        : afterAnswer === "unsolved"
+                                          ? "활동 후 미해결"
+                                          : "활동 후 미입력"
+                                    }
+                                  >
+                                    {afterAnswer === "solved"
+                                      ? "✓"
+                                      : afterAnswer === "unsolved"
+                                        ? "!"
+                                        : "·"}
+                                  </i>
+                                </span>
+                              </div>
                             </td>
                           );
                         })}
+                        <td>
+                          <strong
+                            className={
+                              achievementIncrease && achievementIncrease > 0
+                                ? "student-achievement improved"
+                                : "student-achievement"
+                            }
+                          >
+                            {achievementIncrease === null
+                              ? "활동 후 대기"
+                              : `${achievementIncrease > 0 ? "+" : ""}${achievementIncrease}%p`}
+                          </strong>
+                        </td>
+                        <td>
+                          <button
+                            type="button"
+                            className="student-feedback-button"
+                            onClick={() => openFeedback(student)}
+                          >
+                            {feedbackByStudent.has(student.user_id)
+                              ? "피드백 수정"
+                              : "피드백 주기"}
+                          </button>
+                        </td>
                       </tr>
                     );
                   })}
@@ -571,6 +778,79 @@ export default function TeacherDashboard() {
           </div>
         )}
       </section>
+
+      {feedbackStudent && selectedLesson && (
+        <div
+          className="feedback-modal-backdrop"
+          role="presentation"
+          onMouseDown={() => setFeedbackStudent(null)}
+        >
+          <section
+            className="feedback-modal"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="feedback-modal-title"
+            onMouseDown={(event) => event.stopPropagation()}
+          >
+            <button
+              type="button"
+              className="feedback-modal-close"
+              aria-label="피드백 창 닫기"
+              onClick={() => setFeedbackStudent(null)}
+            >
+              ×
+            </button>
+            <p className="overline">STUDENT FEEDBACK</p>
+            <h2 id="feedback-modal-title">
+              {feedbackStudent.display_name} 학생 피드백
+            </h2>
+            <p>
+              {selectedLesson.subject} 수업의 활동 전후 문제 해결 변화를
+              바탕으로 작성합니다.
+            </p>
+            <textarea
+              value={feedbackDraft}
+              maxLength={2000}
+              onChange={(event) => {
+                setFeedbackDraft(event.target.value);
+                setFeedbackSource("manual");
+              }}
+              placeholder="학생에게 전달할 구체적인 칭찬과 다음 학습 방향을 입력해 주세요."
+            />
+            <div className="feedback-character-count">
+              <span>
+                {feedbackSource === "gemini"
+                  ? "Gemini 초안 · 저장 전 수정 가능"
+                  : "교사 직접 작성"}
+              </span>
+              <b>{feedbackDraft.length} / 2,000</b>
+            </div>
+            {feedbackError && (
+              <p className="save-message error">{feedbackError}</p>
+            )}
+            <div className="feedback-modal-actions">
+              <button
+                type="button"
+                className="secondary gemini-feedback-button"
+                disabled={feedbackBusy !== null}
+                onClick={generateFeedback}
+              >
+                {feedbackBusy === "generate"
+                  ? "Gemini 생성 중..."
+                  : "✨ Gemini로 초안 생성"}
+              </button>
+              <button
+                type="button"
+                className="primary"
+                disabled={!feedbackDraft.trim() || feedbackBusy !== null}
+                onClick={saveFeedback}
+              >
+                {feedbackBusy === "save" ? "저장 중..." : "피드백 저장"}
+              </button>
+            </div>
+          </section>
+        </div>
+      )}
     </section>
   );
 }

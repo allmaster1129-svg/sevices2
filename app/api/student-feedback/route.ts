@@ -1,0 +1,265 @@
+import { auth } from "@clerk/nextjs/server";
+import { NextResponse } from "next/server";
+import { normalizeSubjects } from "@/app/subjects";
+import { createClient } from "@/utils/supabase/server";
+
+type AnswerStatus = "solved" | "unsolved";
+
+type FeedbackInput = {
+  action?: "generate" | "save";
+  lessonId?: string;
+  studentUserId?: string;
+  feedback?: string;
+  source?: "manual" | "gemini";
+};
+
+type LessonQuestion = {
+  number: number;
+  title: string;
+};
+
+async function requireFeedbackContext(
+  lessonId: string,
+  studentUserId: string,
+) {
+  const { userId } = await auth();
+  if (!userId) {
+    return { error: "로그인이 필요합니다.", status: 401 } as const;
+  }
+
+  const supabase = await createClient();
+  const { data: teacher, error: teacherError } = await supabase
+    .from("profiles")
+    .select("role")
+    .eq("user_id", userId)
+    .maybeSingle();
+
+  if (teacherError) {
+    return { error: teacherError.message, status: 500 } as const;
+  }
+  if (teacher?.role !== "admin") {
+    return {
+      error: "교사 계정만 피드백을 작성할 수 있습니다.",
+      status: 403,
+    } as const;
+  }
+
+  const [
+    { data: lesson, error: lessonError },
+    { data: student, error: studentError },
+  ] = await Promise.all([
+    supabase
+      .from("lesson_settings")
+      .select("id, teacher_user_id, grade, class_number, subject, questions")
+      .eq("id", lessonId)
+      .eq("teacher_user_id", userId)
+      .maybeSingle(),
+    supabase
+      .from("profiles")
+      .select("user_id, display_name, grade, class_number, subject, subjects")
+      .eq("user_id", studentUserId)
+      .eq("role", "student")
+      .maybeSingle(),
+  ]);
+
+  if (lessonError || studentError) {
+    return {
+      error: lessonError?.message ?? studentError?.message ?? "",
+      status: 500,
+    } as const;
+  }
+
+  const studentSubjects = normalizeSubjects(student?.subjects);
+  if (
+    !lesson ||
+    !student ||
+    student.grade !== lesson.grade ||
+    student.class_number !== lesson.class_number ||
+    !(
+      studentSubjects.includes(lesson.subject) ||
+      (!studentSubjects.length && student.subject === lesson.subject)
+    )
+  ) {
+    return {
+      error: "선택한 수업의 학생 정보를 확인할 수 없습니다.",
+      status: 404,
+    } as const;
+  }
+
+  return { userId, supabase, lesson, student } as const;
+}
+
+export async function POST(request: Request) {
+  const body = (await request.json()) as FeedbackInput;
+  if (!body.lessonId || !body.studentUserId || !body.action) {
+    return NextResponse.json(
+      { error: "수업, 학생, 피드백 작업을 확인해 주세요." },
+      { status: 400 },
+    );
+  }
+
+  const context = await requireFeedbackContext(
+    body.lessonId,
+    body.studentUserId,
+  );
+  if ("error" in context) {
+    return NextResponse.json(
+      { error: context.error },
+      { status: context.status },
+    );
+  }
+
+  if (body.action === "save") {
+    const feedback = body.feedback?.trim() ?? "";
+    if (!feedback || feedback.length > 2000) {
+      return NextResponse.json(
+        { error: "피드백을 1자 이상 2,000자 이하로 입력해 주세요." },
+        { status: 400 },
+      );
+    }
+
+    const { data, error } = await context.supabase
+      .from("lesson_student_feedback")
+      .upsert(
+        {
+          lesson_id: context.lesson.id,
+          student_user_id: context.student.user_id,
+          teacher_user_id: context.userId,
+          feedback,
+          source: body.source === "gemini" ? "gemini" : "manual",
+          updated_at: new Date().toISOString(),
+        },
+        { onConflict: "lesson_id,student_user_id" },
+      )
+      .select(
+        "lesson_id, student_user_id, feedback, source, created_at, updated_at",
+      )
+      .single();
+
+    if (error) {
+      return NextResponse.json({ error: error.message }, { status: 500 });
+    }
+    return NextResponse.json({ feedback: data });
+  }
+
+  const apiKey = process.env.GEMINI_API_KEY;
+  if (!apiKey) {
+    return NextResponse.json(
+      {
+        error:
+          "Gemini API 키가 아직 설정되지 않았습니다. 배포 환경변수에 GEMINI_API_KEY를 등록해 주세요.",
+      },
+      { status: 503 },
+    );
+  }
+
+  const [
+    { data: before, error: beforeError },
+    { data: after, error: afterError },
+  ] = await Promise.all([
+    context.supabase
+      .from("lesson_question_responses")
+      .select("answers")
+      .eq("lesson_id", context.lesson.id)
+      .eq("student_user_id", context.student.user_id)
+      .maybeSingle(),
+    context.supabase
+      .from("lesson_post_activity_responses")
+      .select("answers, reflection")
+      .eq("lesson_id", context.lesson.id)
+      .eq("student_user_id", context.student.user_id)
+      .maybeSingle(),
+  ]);
+
+  if (beforeError || afterError) {
+    return NextResponse.json(
+      { error: beforeError?.message ?? afterError?.message },
+      { status: 500 },
+    );
+  }
+
+  const beforeAnswers = (before?.answers ?? {}) as Record<
+    string,
+    AnswerStatus
+  >;
+  const afterAnswers = (after?.answers ?? {}) as Record<string, AnswerStatus>;
+  const questions = Array.isArray(context.lesson.questions)
+    ? (context.lesson.questions as LessonQuestion[])
+    : [];
+  const questionSummary = questions
+    .map((question) => {
+      const key = String(question.number);
+      const beforeStatus =
+        beforeAnswers[key] === "solved" ? "해결" : "미해결";
+      const effectiveAfter =
+        beforeAnswers[key] === "solved" || afterAnswers[key] === "solved"
+          ? "해결"
+          : afterAnswers[key] === "unsolved"
+            ? "미해결"
+            : "활동 후 미입력";
+      return `${question.number}번 ${question.title}: 활동 전 ${beforeStatus}, 활동 후 ${effectiveAfter}`;
+    })
+    .join("\n");
+
+  const prompt = [
+    `당신은 중학교 ${context.lesson.subject} 교사입니다.`,
+    `${context.student.display_name} 학생에게 전달할 개별 학습 피드백을 한국어로 작성하세요.`,
+    "학생의 성장한 점을 먼저 구체적으로 칭찬하고, 아직 미해결인 문항이 있다면 다음 학습 행동을 한 가지 제안하세요.",
+    "비교하거나 낙인찍는 표현은 피하고 따뜻하고 간결한 3~5문장으로 작성하세요.",
+    "피드백 본문만 출력하세요.",
+    "",
+    questionSummary,
+    after?.reflection ? `학생 소감: ${after.reflection}` : "",
+  ]
+    .filter(Boolean)
+    .join("\n");
+
+  const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
+  const geminiResponse = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          temperature: 0.4,
+          maxOutputTokens: 500,
+        },
+      }),
+    },
+  );
+  const geminiData = (await geminiResponse.json()) as {
+    candidates?: Array<{
+      content?: { parts?: Array<{ text?: string }> };
+    }>;
+    error?: { message?: string };
+  };
+
+  if (!geminiResponse.ok) {
+    return NextResponse.json(
+      {
+        error:
+          geminiData.error?.message ??
+          "Gemini 피드백을 생성하지 못했습니다.",
+      },
+      { status: 502 },
+    );
+  }
+
+  const generated = geminiData.candidates?.[0]?.content?.parts
+    ?.map((part) => part.text ?? "")
+    .join("")
+    .trim();
+  if (!generated) {
+    return NextResponse.json(
+      { error: "Gemini가 피드백 문장을 반환하지 않았습니다." },
+      { status: 502 },
+    );
+  }
+
+  return NextResponse.json({ generated });
+}
