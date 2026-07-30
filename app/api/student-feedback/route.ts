@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+import { auth, clerkClient } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { normalizeSubjects } from "@/app/subjects";
 import { createClient } from "@/utils/supabase/server";
@@ -142,12 +142,16 @@ export async function POST(request: Request) {
     return NextResponse.json({ feedback: data });
   }
 
-  const apiKey = process.env.GEMINI_API_KEY;
+  const client = await clerkClient();
+  const clerkUser = await client.users.getUser(context.userId);
+  const storedApiKey = clerkUser.privateMetadata.geminiApiKey;
+  const apiKey =
+    typeof storedApiKey === "string" ? storedApiKey.trim() : "";
   if (!apiKey) {
     return NextResponse.json(
       {
         error:
-          "Gemini API 키가 아직 설정되지 않았습니다. 배포 환경변수에 GEMINI_API_KEY를 등록해 주세요.",
+          "교사 설정에서 본인의 Gemini API 키를 먼저 등록해 주세요.",
       },
       { status: 503 },
     );
