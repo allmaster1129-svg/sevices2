@@ -61,6 +61,29 @@
   font-weight: 400;
 }
 
+.question-image-paste-hint {
+  margin: 0 0 10px;
+  color: #364152;
+  font-size: 13px;
+  line-height: 1.55;
+}
+
+.question-image-paste-hint kbd {
+  display: inline-flex;
+  min-width: 24px;
+  min-height: 23px;
+  align-items: center;
+  justify-content: center;
+  margin: 0 2px;
+  border: 1px solid #9ca8b8;
+  border-bottom-width: 2px;
+  border-radius: 5px;
+  background: #fff;
+  color: #111827;
+  font: 700 11px/1 "DM Sans", sans-serif;
+  box-shadow: 0 1px 0 rgba(17, 24, 39, 0.08);
+}
+
 .question-image-upload {
   min-height: 92px;
   border: 1px dashed #aeb4bd;

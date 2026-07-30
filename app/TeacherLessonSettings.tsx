@@ -1,6 +1,11 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import {
+  type ClipboardEvent,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 import { ComicCue } from "./ComicUI";
 import { formatLessonPeriod, LESSON_PERIODS } from "./lesson-period";
 
@@ -173,7 +178,7 @@ export default function TeacherLessonSettings({
   }
 
   async function uploadQuestionImage(index: number, file?: File) {
-    if (!file) return;
+    if (!file || uploadingQuestion !== null) return;
     if (!["image/jpeg", "image/png", "image/webp"].includes(file.type)) {
       setError("JPG, PNG, WEBP 형식의 이미지만 업로드할 수 있습니다.");
       return;
@@ -216,6 +221,31 @@ export default function TeacherLessonSettings({
     } finally {
       setUploadingQuestion(null);
     }
+  }
+
+  function pasteQuestionImage(
+    index: number,
+    event: ClipboardEvent<HTMLElement>,
+  ) {
+    const imageItem = Array.from(event.clipboardData.items).find(
+      (item) => item.kind === "file" && item.type.startsWith("image/"),
+    );
+    if (!imageItem) return;
+
+    event.preventDefault();
+    const clipboardFile = imageItem.getAsFile();
+    if (!clipboardFile) return;
+
+    const extension =
+      clipboardFile.type === "image/jpeg"
+        ? "jpg"
+        : clipboardFile.type.split("/")[1] || "png";
+    const screenshot = new File(
+      [clipboardFile],
+      `screenshot-${Date.now()}.${extension}`,
+      { type: clipboardFile.type },
+    );
+    void uploadQuestionImage(index, screenshot);
   }
 
   async function saveLesson() {
@@ -398,7 +428,11 @@ export default function TeacherLessonSettings({
 
           <div className="question-editor-list">
             {questions.map((question, index) => (
-              <article className="question-editor" key={question.number}>
+              <article
+                className="question-editor"
+                key={question.number}
+                onPaste={(event) => pasteQuestionImage(index, event)}
+              >
                 <span className="question-index">{question.number}</span>
                 <div>
                   <label>
@@ -422,6 +456,10 @@ export default function TeacherLessonSettings({
                     />
                   </label>
                   <div className="question-image-field">
+                    <p className="question-image-paste-hint">
+                      이 문항 안을 클릭한 뒤 <kbd>Ctrl</kbd>+<kbd>V</kbd>로
+                      스크린샷을 바로 붙여넣을 수 있어요.
+                    </p>
                     <span>문항 이미지 <small>선택 · 최대 5MB</small></span>
                     {question.imageUrl ? (
                       <div className="question-image-preview">
