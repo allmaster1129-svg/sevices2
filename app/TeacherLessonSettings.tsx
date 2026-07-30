@@ -253,7 +253,10 @@ export default function TeacherLessonSettings({
           ? current.map((lesson) =>
               lesson.id === result.lesson?.id ? result.lesson : lesson,
             )
-          : [result.lesson!, ...current],
+          : [
+              result.lesson!,
+              ...current.filter((lesson) => lesson.id !== result.lesson?.id),
+            ],
       );
       setMessage(
         editingLessonId

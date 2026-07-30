@@ -82,6 +82,13 @@ function readableSupabaseError(message: string) {
   return message;
 }
 
+function isDuplicateLessonError(error: { code?: string; message: string }) {
+  return (
+    error.code === "23505" ||
+    error.message.includes("lesson_settings_unique_schedule_idx")
+  );
+}
+
 async function requireTeacher() {
   const { userId } = await auth();
   if (!userId) return { error: "인증이 필요합니다.", status: 401 } as const;
@@ -156,17 +163,33 @@ export async function POST(request: Request) {
 
   const { data, error } = await teacher.supabase
     .from("lesson_settings")
-    .insert({
-      teacher_user_id: teacher.userId,
-      ...lessonInput,
-      subject: teacher.subject,
-    })
+    .upsert(
+      {
+        teacher_user_id: teacher.userId,
+        ...lessonInput,
+        subject: teacher.subject,
+        updated_at: new Date().toISOString(),
+      },
+      {
+        onConflict:
+          "teacher_user_id,grade,class_number,learning_date,learning_time,subject",
+      },
+    )
     .select(
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
     )
     .single();
 
   if (error) {
+    if (isDuplicateLessonError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "같은 과목·학급·날짜·교시에 이미 수업이 있습니다. 기존 수업을 수정해 주세요.",
+        },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       { error: readableSupabaseError(error.message) },
       { status: 500 },
@@ -209,6 +232,15 @@ export async function PATCH(request: Request) {
     .maybeSingle();
 
   if (error) {
+    if (isDuplicateLessonError(error)) {
+      return NextResponse.json(
+        {
+          error:
+            "변경한 과목·학급·날짜·교시에 이미 다른 수업이 있습니다.",
+        },
+        { status: 409 },
+      );
+    }
     return NextResponse.json(
       { error: readableSupabaseError(error.message) },
       { status: 500 },
