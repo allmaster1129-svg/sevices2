@@ -113,11 +113,6 @@ export default function TeacherPairMatching() {
     [classKey, lessons],
   );
 
-  useEffect(() => {
-    if (!lessonId) return;
-    createMatches(lessonId);
-  }, [lessonId]);
-
   function changeClass(nextClassKey: string) {
     setClassKey(nextClassKey);
     setResult(null);
@@ -193,13 +188,15 @@ export default function TeacherPairMatching() {
             동점 후보는 무작위로 배정합니다.
           </p>
         </div>
-        <button
-          className="primary rematch-button"
-          disabled={!lessonId || matching}
-          onClick={() => createMatches()}
-        >
-          {matching ? "매칭 중..." : "↻ 무작위로 다시 매칭"}
-        </button>
+        {result && (
+          <button
+            className="primary rematch-button"
+            disabled={!lessonId || matching}
+            onClick={() => createMatches()}
+          >
+            {matching ? "매칭 중..." : "↻ 다시 매칭"}
+          </button>
+        )}
         <ComicCue label="PAIR MISSION" accent="mint" mood="cheer" prop="note">
           서로 설명해 줄 문제가 많은 친구부터 연결해요!
         </ComicCue>
@@ -239,6 +236,24 @@ export default function TeacherPairMatching() {
       </div>
 
       {error && <p className="save-message error">{error}</p>}
+
+      {!result && !error && (
+        <div className="panel matching-empty matching-start">
+          <h2>선택한 수업의 배움짝을 매칭해 주세요.</h2>
+          <p>
+            학생들의 설문 결과는 매칭 버튼을 누르기 전까지 계산하거나
+            저장하지 않습니다.
+          </p>
+          <button
+            type="button"
+            className="primary"
+            disabled={!lessonId || matching}
+            onClick={() => createMatches()}
+          >
+            {matching ? "매칭 중..." : "배움짝 매칭하기"}
+          </button>
+        </div>
+      )}
 
       {result && (
         <>

@@ -1471,7 +1471,7 @@ label,
 .subject-multi-select {
   width: 100%;
   margin: 0;
-  padding: 16px;
+  padding: 13px;
   border: 1px solid #c8ccd2;
   border-radius: 4px;
   background: #f7f8fa;
@@ -1485,36 +1485,43 @@ label,
 }
 
 .subject-multi-select > p {
-  margin: 0 0 12px;
+  margin: 0 0 9px;
   color: #5c636d;
-  font-size: 13px;
+  font-size: 12px;
 }
 
 .subject-multi-select > div {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 8px;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 6px;
 }
 
 .subject-multi-select label {
   display: flex;
   align-items: center;
-  gap: 8px;
-  min-height: 42px;
+  gap: 6px;
+  min-height: 34px;
   margin: 0;
-  padding: 8px 10px;
+  padding: 5px 7px;
   border: 1px solid #d8dce1;
   border-radius: 4px;
   background: #fff;
   color: #171a20 !important;
+  font-size: 12px !important;
+  line-height: 1.2;
   cursor: pointer;
 }
 
 .subject-multi-select input {
-  width: 18px;
-  min-height: 18px;
+  width: 14px;
+  min-height: 14px;
+  flex: 0 0 14px;
   margin: 0;
   accent-color: #174ea6;
+}
+
+.matching-start .primary {
+  margin-top: 20px;
 }
 
 .active-subject-switch {
@@ -1588,7 +1595,7 @@ label,
 
 @media (max-width: 800px) {
   .subject-multi-select > div {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .active-subject-switch span {
@@ -1598,7 +1605,7 @@ label,
 
 @media (max-width: 520px) {
   .subject-multi-select > div {
-    grid-template-columns: 1fr;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
   }
 
   .active-subject-switch select {
