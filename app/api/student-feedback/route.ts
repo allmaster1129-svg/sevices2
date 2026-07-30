@@ -18,6 +18,48 @@ type LessonQuestion = {
   title: string;
 };
 
+type GeminiResponseData = {
+  candidates?: Array<{
+    content?: { parts?: Array<{ text?: string }> };
+  }>;
+  error?: { message?: string; status?: string };
+};
+
+const TRANSIENT_GEMINI_STATUSES = new Set([429, 500, 502, 503, 504]);
+
+function wait(milliseconds: number) {
+  return new Promise((resolve) => setTimeout(resolve, milliseconds));
+}
+
+async function requestGemini({
+  apiKey,
+  model,
+  prompt,
+}: {
+  apiKey: string;
+  model: string;
+  prompt: string;
+}) {
+  const response = await fetch(
+    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
+      body: JSON.stringify({
+        contents: [{ role: "user", parts: [{ text: prompt }] }],
+        generationConfig: {
+          maxOutputTokens: 500,
+        },
+      }),
+    },
+  );
+  const data = (await response.json()) as GeminiResponseData;
+  return { response, data };
+}
+
 async function requireFeedbackContext(
   lessonId: string,
   studentUserId: string,
@@ -218,52 +260,74 @@ export async function POST(request: Request) {
     .filter(Boolean)
     .join("\n");
 
-  const model = process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
-  const geminiResponse = await fetch(
-    `https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:generateContent`,
-    {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        "x-goog-api-key": apiKey,
-      },
-      body: JSON.stringify({
-        contents: [{ role: "user", parts: [{ text: prompt }] }],
-        generationConfig: {
-          temperature: 0.4,
-          maxOutputTokens: 500,
-        },
-      }),
-    },
+  const primaryModel =
+    process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
+  const models = Array.from(
+    new Set([primaryModel, "gemini-3.5-flash-lite"]),
   );
-  const geminiData = (await geminiResponse.json()) as {
-    candidates?: Array<{
-      content?: { parts?: Array<{ text?: string }> };
-    }>;
-    error?: { message?: string };
-  };
+  let lastStatus = 502;
+  let lastMessage = "";
 
-  if (!geminiResponse.ok) {
-    return NextResponse.json(
-      {
-        error:
-          geminiData.error?.message ??
-          "Gemini 피드백을 생성하지 못했습니다.",
-      },
-      { status: 502 },
-    );
+  for (const [modelIndex, model] of models.entries()) {
+    const delays =
+      modelIndex === 0 ? [0, 1000, 2000, 4000] : [0, 1000, 2000];
+
+    for (const delay of delays) {
+      if (delay) {
+        await wait(delay);
+      }
+
+      try {
+        const { response, data } = await requestGemini({
+          apiKey,
+          model,
+          prompt,
+        });
+        lastStatus = response.status;
+        lastMessage = data.error?.message ?? "";
+
+        if (response.ok) {
+          const generated = data.candidates?.[0]?.content?.parts
+            ?.map((part) => part.text ?? "")
+            .join("")
+            .trim();
+          if (generated) {
+            return NextResponse.json({
+              generated,
+              model,
+              fallbackUsed: modelIndex > 0,
+            });
+          }
+          lastMessage = "Gemini가 피드백 문장을 반환하지 않았습니다.";
+          break;
+        }
+
+        if (!TRANSIENT_GEMINI_STATUSES.has(response.status)) {
+          const userMessage =
+            response.status === 400 || response.status === 403
+              ? "Gemini API 키가 유효한지 Google AI Studio에서 확인해 주세요."
+              : lastMessage || "Gemini 피드백을 생성하지 못했습니다.";
+          return NextResponse.json(
+            { error: userMessage },
+            { status: response.status },
+          );
+        }
+      } catch (reason) {
+        lastStatus = 502;
+        lastMessage =
+          reason instanceof Error
+            ? reason.message
+            : "Gemini 서버에 연결하지 못했습니다.";
+      }
+    }
   }
 
-  const generated = geminiData.candidates?.[0]?.content?.parts
-    ?.map((part) => part.text ?? "")
-    .join("")
-    .trim();
-  if (!generated) {
-    return NextResponse.json(
-      { error: "Gemini가 피드백 문장을 반환하지 않았습니다." },
-      { status: 502 },
-    );
-  }
+  const error =
+    lastStatus === 429
+      ? "Gemini API 사용 한도에 도달했습니다. 잠시 후 다시 시도하거나 Google AI Studio의 사용량을 확인해 주세요."
+      : lastStatus >= 500
+        ? "Gemini 서버 사용량이 많아 자동 재시도와 대체 모델 전환을 했지만 응답을 받지 못했습니다. 잠시 후 다시 시도해 주세요."
+        : lastMessage || "Gemini 피드백을 생성하지 못했습니다.";
 
-  return NextResponse.json({ generated });
+  return NextResponse.json({ error }, { status: 502 });
 }

@@ -836,7 +836,7 @@ export default function TeacherDashboard() {
                 onClick={generateFeedback}
               >
                 {feedbackBusy === "generate"
-                  ? "Gemini 생성 중..."
+                  ? "자동 재시도 중..."
                   : "✨ Gemini로 초안 생성"}
               </button>
               <button
