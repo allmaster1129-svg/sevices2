@@ -51,7 +51,7 @@ async function requestGemini({
       body: JSON.stringify({
         contents: [{ role: "user", parts: [{ text: prompt }] }],
         generationConfig: {
-          maxOutputTokens: 500,
+          maxOutputTokens: 320,
         },
       }),
     },
@@ -264,16 +264,17 @@ export async function POST(request: Request) {
     .join("\n");
 
   const primaryModel =
+    process.env.GEMINI_FAST_MODEL?.trim() || "gemini-3.5-flash-lite";
+  const fallbackModel =
     process.env.GEMINI_MODEL?.trim() || "gemini-3.5-flash";
   const models = Array.from(
-    new Set([primaryModel, "gemini-3.5-flash-lite"]),
+    new Set([primaryModel, fallbackModel]),
   );
   let lastStatus = 502;
   let lastMessage = "";
 
   for (const [modelIndex, model] of models.entries()) {
-    const delays =
-      modelIndex === 0 ? [0, 1000, 2000, 4000] : [0, 1000, 2000];
+    const delays = modelIndex === 0 ? [0, 500] : [0];
 
     for (const delay of delays) {
       if (delay) {
