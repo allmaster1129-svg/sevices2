@@ -1805,3 +1805,221 @@ textarea:focus {
     font-size: 13px !important;
   }
 }
+
+/* Keep notifications above transformed cards, heroes, and sticky navigation. */
+.topbar {
+  position: relative;
+  z-index: 1000;
+  overflow: visible;
+}
+
+.top-actions,
+.notification-center {
+  position: relative;
+  z-index: 1001;
+}
+
+.notification-dropdown {
+  z-index: 2000;
+}
+
+@media (max-width: 650px) {
+  .sidebar {
+    z-index: 900;
+  }
+
+  .side-link {
+    min-width: calc(50% - 4px);
+    min-height: 44px;
+    white-space: normal;
+    text-align: center;
+    line-height: 1.3;
+  }
+
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 1000;
+    width: 100%;
+    height: 62px;
+    min-height: 62px;
+    gap: 10px;
+    padding: 0 14px;
+  }
+
+  .breadcrumb {
+    min-width: 0;
+    flex: 1 1 auto;
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    font-size: 12px;
+  }
+
+  .breadcrumb span {
+    padding: 0 3px;
+  }
+
+  .top-actions {
+    flex: 0 0 auto;
+    gap: 5px;
+  }
+
+  .top-actions > .account-role-label {
+    display: none;
+  }
+
+  .notification-trigger {
+    min-width: 50px;
+    min-height: 42px;
+    justify-content: center;
+    padding: 8px 6px;
+  }
+
+  .notification-dropdown {
+    position: fixed;
+    z-index: 2000;
+    top: 66px;
+    right: 10px;
+    left: 10px;
+    width: auto;
+    max-height: calc(100dvh - 78px);
+  }
+
+  .notification-list {
+    max-height: calc(100dvh - 160px);
+  }
+
+  .settings-hero,
+  .dashboard-hero,
+  .student-lessons-hero,
+  .activity-results-hero,
+  .guide-hero {
+    width: 100%;
+    padding: 22px 16px;
+    overflow: visible;
+  }
+
+  .settings-hero > div,
+  .dashboard-hero > div,
+  .student-lessons-hero > div,
+  .activity-results-hero > div,
+  .guide-hero > div {
+    min-width: 0;
+    width: 100%;
+  }
+
+  .settings-hero h1,
+  .dashboard-hero h1,
+  .student-lessons-hero h1,
+  .activity-results-hero h1,
+  .guide-hero h1 {
+    max-width: 100%;
+    margin-right: 0;
+    font-size: clamp(25px, 7.6vw, 30px);
+    line-height: 1.24;
+    letter-spacing: -0.045em;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .settings-hero p:not(.overline),
+  .dashboard-hero p:not(.overline),
+  .student-lessons-hero p:not(.overline),
+  .activity-results-hero p:not(.overline),
+  .guide-hero > div > p:last-child {
+    max-width: 100%;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .student-lessons-hero > .student-class-badge,
+  .activity-results-hero > span:not(.comic-cue),
+  .settings-hero > .settings-count,
+  .guide-hero > .guide-role {
+    max-width: 100%;
+    white-space: normal;
+  }
+
+  .lesson-choice {
+    padding-right: 14px;
+  }
+
+  .lesson-choice i {
+    position: static;
+    align-self: flex-start;
+    margin-top: 3px;
+  }
+
+  .student-pairing-head,
+  .student-question-head,
+  .activity-result-head {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .student-pairing-head > b {
+    align-self: flex-start;
+  }
+
+  .student-pair-people {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+
+  .student-pair-people > div {
+    width: 100%;
+  }
+
+  .student-pair-people > strong {
+    transform: rotate(90deg);
+  }
+
+  .student-progress,
+  .activity-result-head > div:last-child {
+    width: 100%;
+    min-width: 0;
+    text-align: left;
+  }
+
+  .answer-toggle,
+  .activity-question-list article > div:last-child {
+    width: 100%;
+    flex-direction: column;
+  }
+
+  .answer-toggle button,
+  .activity-question-list button {
+    width: 100%;
+    white-space: normal;
+    line-height: 1.35;
+  }
+
+  .login-intro {
+    min-height: 535px;
+    padding: 32px 22px 235px;
+  }
+
+  .login-intro h1 {
+    max-width: 100%;
+    font-size: clamp(29px, 8vw, 34px);
+    line-height: 1.18;
+    word-break: keep-all;
+    overflow-wrap: anywhere;
+  }
+
+  .login-intro p:not(.overline) {
+    position: relative;
+    z-index: 3;
+    max-width: 100%;
+    word-break: keep-all;
+  }
+
+  .login-comic-scene {
+    right: 2px;
+    bottom: 0;
+    transform: scale(0.72);
+    transform-origin: bottom right;
+  }
+}
