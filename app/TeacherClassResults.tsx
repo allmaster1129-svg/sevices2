@@ -288,9 +288,9 @@ export default function TeacherClassResults() {
             </p>
           </div>
           <div className="result-legend">
-            <span><i className="solved" /> 풀었어요</span>
-            <span><i className="unsolved" /> 못 풀었어요</span>
-            <span><i className="unanswered" /> 미응답</span>
+            <span><i className="solved">✓</i> 풀었어요</span>
+            <span><i className="unsolved">!</i> 못 풀었어요</span>
+            <span><i className="unanswered">·</i> 미응답</span>
           </div>
         </div>
 

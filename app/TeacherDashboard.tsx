@@ -422,7 +422,7 @@ export default function TeacherDashboard() {
           <div className="panel-head">
             <div>
               <h2>학생별 문제 해결 현황</h2>
-              <p>초록은 해결, 주황은 미해결, 회색은 미응답입니다.</p>
+              <p>✓는 해결, !는 미해결, ·는 미응답입니다.</p>
             </div>
             <span className="trend">{selectedLesson.question_count}개 문항</span>
           </div>
@@ -455,7 +455,23 @@ export default function TeacherDashboard() {
                             studentResponse?.answers?.[String(question.number)];
                           return (
                             <td key={question.number}>
-                              <i className={answer ?? "unanswered"}>
+                              <i
+                                className={answer ?? "unanswered"}
+                                aria-label={
+                                  answer === "solved"
+                                    ? "해결"
+                                    : answer === "unsolved"
+                                      ? "미해결"
+                                      : "미응답"
+                                }
+                                title={
+                                  answer === "solved"
+                                    ? "해결"
+                                    : answer === "unsolved"
+                                      ? "미해결"
+                                      : "미응답"
+                                }
+                              >
                                 {answer === "solved"
                                   ? "✓"
                                   : answer === "unsolved"

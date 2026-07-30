@@ -863,9 +863,17 @@ label,
 }
 
 .dashboard-heatmap-table i.solved,
+.result-mark.solved {
+  background: #e7f6ed;
+  color: #1f7a4d;
+}
+
 .dashboard-heatmap-table i.unsolved,
-.result-mark.solved,
-.result-mark.unsolved,
+.result-mark.unsolved {
+  background: #fff0e5;
+  color: #b84f18;
+}
+
 .submission.done {
   background: var(--tesla-white);
   color: var(--tesla-blue);
@@ -874,6 +882,32 @@ label,
 .dashboard-heatmap-table i.unanswered,
 .result-mark.unanswered,
 .submission.waiting {
+  background: #e5e5e5;
+  color: var(--tesla-pewter);
+}
+
+.result-legend i {
+  width: 22px;
+  height: 22px;
+  display: inline-grid;
+  place-items: center;
+  border-radius: 4px;
+  font-size: 12px;
+  font-style: normal;
+  font-weight: 800;
+}
+
+.result-legend i.solved {
+  background: #e7f6ed;
+  color: #1f7a4d;
+}
+
+.result-legend i.unsolved {
+  background: #fff0e5;
+  color: #b84f18;
+}
+
+.result-legend i.unanswered {
   background: #e5e5e5;
   color: var(--tesla-pewter);
 }
