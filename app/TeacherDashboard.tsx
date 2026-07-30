@@ -603,7 +603,10 @@ export default function TeacherDashboard() {
           <div className="panel-head">
             <div>
               <h2>학생별 문제 해결 현황</h2>
-              <p>✓는 해결, !는 미해결, ·는 미응답입니다.</p>
+              <p>
+                ✓는 해결, !는 미해결, ·는 미응답입니다. 1차 해결 문항은
+                2차 확인 표시를 생략합니다.
+              </p>
             </div>
             <span className="trend">{selectedLesson.question_count}개 문항</span>
           </div>
@@ -689,25 +692,27 @@ export default function TeacherDashboard() {
                                         : "·"}
                                   </i>
                                 </span>
-                                <span>
-                                  <small>후</small>
-                                  <i
-                                    className={afterAnswer ?? "unanswered"}
-                                    title={
-                                      afterAnswer === "solved"
-                                        ? "활동 후 해결"
+                                {beforeAnswer !== "solved" && (
+                                  <span>
+                                    <small>후</small>
+                                    <i
+                                      className={afterAnswer ?? "unanswered"}
+                                      title={
+                                        afterAnswer === "solved"
+                                          ? "활동 후 해결"
+                                          : afterAnswer === "unsolved"
+                                            ? "활동 후 미해결"
+                                            : "활동 후 미입력"
+                                      }
+                                    >
+                                      {afterAnswer === "solved"
+                                        ? "✓"
                                         : afterAnswer === "unsolved"
-                                          ? "활동 후 미해결"
-                                          : "활동 후 미입력"
-                                    }
-                                  >
-                                    {afterAnswer === "solved"
-                                      ? "✓"
-                                      : afterAnswer === "unsolved"
-                                        ? "!"
-                                        : "·"}
-                                  </i>
-                                </span>
+                                          ? "!"
+                                          : "·"}
+                                    </i>
+                                  </span>
+                                )}
                               </div>
                             </td>
                           );
