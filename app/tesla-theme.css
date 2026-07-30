@@ -2253,3 +2253,480 @@ label,
     grid-template-columns: 1fr;
   }
 }
+
+/* Student learning progress dashboard */
+.student-progress-dashboard {
+  min-height: 100%;
+  padding: 52px clamp(22px, 4vw, 66px) 72px;
+  background: #f4f5f7;
+  color: #171a20;
+}
+
+.student-progress-hero {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 28px;
+  margin-bottom: 26px;
+}
+
+.student-progress-hero h1 {
+  margin: 8px 0 12px;
+  color: #171a20;
+  font-size: clamp(32px, 4vw, 50px);
+  line-height: 1.12;
+  letter-spacing: -0.045em;
+}
+
+.student-progress-hero > div:first-child > p:last-child {
+  max-width: 720px;
+  margin: 0;
+  color: #434a54;
+  font-size: 17px;
+  line-height: 1.7;
+}
+
+.student-progress-hero-summary {
+  min-width: 176px;
+  padding: 18px 20px;
+  border-radius: 6px;
+  background: #171a20;
+  color: #fff;
+}
+
+.student-progress-hero-summary span {
+  display: block;
+  color: #cad0d9;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-progress-hero-summary b {
+  display: block;
+  margin-top: 7px;
+  font-size: 31px;
+}
+
+.student-progress-hero-summary small {
+  color: #aeb6c1;
+  font-size: 15px;
+}
+
+.student-progress-toolbar {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+  padding: 18px 20px;
+  border: 1px solid #d8dce2;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.student-progress-toolbar label {
+  display: grid;
+  flex: 1;
+  max-width: 640px;
+  gap: 7px;
+  color: #343a43;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.student-progress-toolbar select {
+  width: 100%;
+  min-height: 48px;
+  padding: 0 44px 0 14px;
+  border: 1px solid #bfc5ce;
+  border-radius: 4px;
+  background: #fff;
+  color: #171a20;
+  font-size: 15px;
+  font-weight: 700;
+}
+
+.student-progress-lesson-chip {
+  display: grid;
+  gap: 4px;
+  min-width: 145px;
+  padding: 10px 14px;
+  border-left: 3px solid #3e6ae1;
+  background: #edf2ff;
+}
+
+.student-progress-lesson-chip span {
+  color: #3156b5;
+  font-size: 12px;
+  font-weight: 800;
+}
+
+.student-progress-lesson-chip b {
+  color: #171a20;
+  font-size: 15px;
+}
+
+.student-progress-metrics {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+  margin-bottom: 18px;
+}
+
+.student-progress-metrics article {
+  display: grid;
+  min-height: 145px;
+  align-content: space-between;
+  padding: 20px;
+  border: 1px solid #d8dce2;
+  border-radius: 6px;
+  background: #fff;
+}
+
+.student-progress-metrics article > span {
+  color: #555d68;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.student-progress-metrics article > b {
+  color: #171a20;
+  font-size: 34px;
+  line-height: 1;
+  letter-spacing: -0.04em;
+}
+
+.student-progress-metrics article > small {
+  color: #59616b;
+  font-size: 12px;
+  line-height: 1.45;
+}
+
+.student-progress-metrics .student-progress-growth {
+  border-color: #afd5c1;
+  background: #eaf7f0;
+}
+
+.student-progress-metrics .student-progress-growth > b {
+  color: #147447;
+}
+
+.student-progress-grid {
+  display: grid;
+  grid-template-columns: minmax(0, 1.7fr) minmax(300px, 0.8fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.student-progress-comparison,
+.student-teacher-feedback {
+  padding: 24px;
+}
+
+.student-progress-section-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+  margin-bottom: 18px;
+}
+
+.student-progress-section-head > div:first-child > span,
+.student-feedback-label {
+  color: #3156b5;
+  font-size: 11px;
+  font-weight: 900;
+  letter-spacing: 0.16em;
+}
+
+.student-progress-section-head h2,
+.student-teacher-feedback h2 {
+  margin: 6px 0 0;
+  color: #171a20;
+  font-size: 23px;
+}
+
+.student-progress-legend {
+  display: flex;
+  gap: 12px;
+  color: #555d68;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.student-progress-legend span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.student-progress-legend i {
+  width: 9px;
+  height: 9px;
+  border-radius: 50%;
+}
+
+.student-progress-legend i.solved {
+  background: #1f9d64;
+}
+
+.student-progress-legend i.unsolved {
+  background: #cf4545;
+}
+
+.student-progress-question-list {
+  display: grid;
+  gap: 8px;
+}
+
+.student-progress-question-list > article {
+  display: grid;
+  grid-template-columns: 36px minmax(150px, 1fr) minmax(230px, auto);
+  align-items: center;
+  gap: 12px;
+  min-height: 68px;
+  padding: 10px 12px;
+  border: 1px solid #e0e3e8;
+  border-radius: 4px;
+  background: #fafbfc;
+}
+
+.student-progress-question-number {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  place-items: center;
+  border-radius: 4px;
+  background: #171a20;
+  color: #fff;
+  font-size: 13px;
+  font-weight: 900;
+}
+
+.student-progress-question-list h3 {
+  margin: 0;
+  color: #252a31;
+  font-size: 14px;
+}
+
+.student-progress-question-list > article > div {
+  display: grid;
+  grid-template-columns: 88px 22px 88px;
+  align-items: center;
+  justify-content: end;
+  gap: 4px;
+}
+
+.student-progress-question-list > article > div > span {
+  display: grid;
+  justify-items: center;
+  gap: 4px;
+}
+
+.student-progress-question-list small {
+  color: #6a727d;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.student-progress-question-list > article > div > i {
+  color: #8d949e;
+  font-style: normal;
+  text-align: center;
+}
+
+.student-progress-question-list b {
+  min-width: 70px;
+  padding: 6px 8px;
+  border-radius: 3px;
+  font-size: 12px;
+  text-align: center;
+}
+
+.student-progress-question-list b.solved {
+  background: #daf3e5;
+  color: #126b40;
+}
+
+.student-progress-question-list b.unsolved {
+  background: #fde5e5;
+  color: #ad3030;
+}
+
+.student-progress-question-list b.unanswered {
+  background: #eceff3;
+  color: #68717c;
+}
+
+.student-teacher-feedback {
+  position: sticky;
+  top: 86px;
+  border-color: #c8d5f0;
+  background: #f3f6fd;
+}
+
+.student-teacher-feedback blockquote {
+  margin: 22px 0 14px;
+  padding: 20px;
+  border-left: 4px solid #3e6ae1;
+  background: #fff;
+  color: #252a31;
+  font-size: 15px;
+  font-weight: 600;
+  line-height: 1.75;
+}
+
+.student-teacher-feedback > small {
+  color: #626a74;
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.student-feedback-waiting {
+  display: grid;
+  justify-items: start;
+  gap: 8px;
+  margin-top: 22px;
+  padding: 20px;
+  border: 1px dashed #b7c3dc;
+  border-radius: 4px;
+  background: #fff;
+}
+
+.student-feedback-waiting i {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border-radius: 50%;
+  background: #edf2ff;
+  color: #3156b5;
+  font-size: 18px;
+  font-style: normal;
+}
+
+.student-feedback-waiting b {
+  color: #252a31;
+  font-size: 14px;
+}
+
+.student-feedback-waiting p {
+  margin: 0;
+  color: #5d6570;
+  font-size: 12px;
+  line-height: 1.6;
+}
+
+.student-reflection-recap {
+  margin-top: 20px;
+  padding-top: 18px;
+  border-top: 1px solid #ccd6e8;
+}
+
+.student-reflection-recap span {
+  color: #3156b5;
+  font-size: 11px;
+  font-weight: 900;
+}
+
+.student-reflection-recap p {
+  margin: 7px 0 0;
+  color: #434a54;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.student-progress-empty {
+  padding: 48px;
+  text-align: center;
+}
+
+.student-progress-empty > span {
+  color: #3156b5;
+  font-size: 12px;
+  font-weight: 900;
+}
+
+.student-progress-empty h2 {
+  margin: 10px 0;
+  color: #171a20;
+}
+
+.student-progress-empty p {
+  margin: 0;
+  color: #555d68;
+}
+
+@media (max-width: 1100px) {
+  .student-progress-metrics {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .student-progress-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .student-teacher-feedback {
+    position: static;
+  }
+}
+
+@media (max-width: 650px) {
+  .student-progress-dashboard {
+    padding: 30px 14px 48px;
+  }
+
+  .student-progress-hero {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-progress-hero h1 {
+    font-size: 34px;
+  }
+
+  .student-progress-hero-summary {
+    width: 100%;
+  }
+
+  .student-progress-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .student-progress-lesson-chip {
+    width: 100%;
+  }
+
+  .student-progress-metrics {
+    grid-template-columns: 1fr;
+  }
+
+  .student-progress-metrics article {
+    min-height: 128px;
+  }
+
+  .student-progress-comparison,
+  .student-teacher-feedback {
+    padding: 18px 14px;
+  }
+
+  .student-progress-section-head {
+    flex-direction: column;
+  }
+
+  .student-progress-question-list > article {
+    grid-template-columns: 34px minmax(0, 1fr);
+  }
+
+  .student-progress-question-list > article > div {
+    grid-column: 1 / -1;
+    grid-template-columns: 1fr 20px 1fr;
+    justify-content: stretch;
+    padding-top: 6px;
+  }
+
+  .student-progress-question-list b {
+    width: 100%;
+  }
+}

@@ -94,12 +94,19 @@ export async function GET() {
     completed_at: string | null;
     updated_at: string;
   }> = [];
+  let feedbackRows: Array<{
+    lesson_id: string;
+    feedback: string;
+    source: "manual" | "gemini";
+    updated_at: string;
+  }> = [];
 
   if (lessonIds.length) {
     const [
       { data: responseData, error: responseError },
       { data: pairingData, error: pairingError },
       { data: postActivityData, error: postActivityError },
+      { data: feedbackData, error: feedbackError },
     ] = await Promise.all([
       student.supabase
         .from("lesson_question_responses")
@@ -118,15 +125,26 @@ export async function GET() {
         .select("lesson_id, answers, reflection, completed_at, updated_at")
         .eq("student_user_id", student.userId)
         .in("lesson_id", lessonIds),
+      student.supabase
+        .from("lesson_student_feedback")
+        .select("lesson_id, feedback, source, updated_at")
+        .eq("student_user_id", student.userId)
+        .in("lesson_id", lessonIds),
     ]);
 
-    if (responseError || pairingError || postActivityError) {
+    if (
+      responseError ||
+      pairingError ||
+      postActivityError ||
+      feedbackError
+    ) {
       return NextResponse.json(
         {
           error:
             responseError?.message ??
             pairingError?.message ??
-            postActivityError?.message,
+            postActivityError?.message ??
+            feedbackError?.message,
         },
         { status: 500 },
       );
@@ -134,6 +152,7 @@ export async function GET() {
     responseRows = responseData ?? [];
     pairingRows = pairingData ?? [];
     postActivityRows = postActivityData ?? [];
+    feedbackRows = feedbackData ?? [];
   }
 
   const responseByLesson = new Map(
@@ -145,6 +164,9 @@ export async function GET() {
   const postActivityByLesson = new Map(
     postActivityRows.map((row) => [row.lesson_id, row]),
   );
+  const feedbackByLesson = new Map(
+    feedbackRows.map((row) => [row.lesson_id, row]),
+  );
 
   return NextResponse.json({
     lessons: (lessons ?? []).map((lesson) => ({
@@ -153,6 +175,7 @@ export async function GET() {
       pairing: pairingByLesson.get(lesson.id) ?? null,
       post_activity_response:
         postActivityByLesson.get(lesson.id) ?? null,
+      feedback: feedbackByLesson.get(lesson.id) ?? null,
     })),
   });
 }

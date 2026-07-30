@@ -16,6 +16,7 @@ import UsageGuide from "./UsageGuide";
 import StudentProfileEditor from "./StudentProfileEditor";
 import TeacherProfileEditor from "./TeacherProfileEditor";
 import TeacherStudentManagement from "./TeacherStudentManagement";
+import StudentProgressDashboard from "./StudentProgressDashboard";
 import "./settings.module.css";
 import "./clerk.module.css";
 import "./notifications-guide.css";
@@ -32,6 +33,7 @@ const students = [
 
 type Screen =
   | "login"
+  | "student-dashboard"
   | "student"
   | "student-results"
   | "admin"
@@ -60,7 +62,7 @@ export default function Home() {
         onComplete={(savedProfile) => {
           setProfile(savedProfile);
           setScreen(
-            savedProfile.role === "admin" ? "admin" : "student",
+            savedProfile.role === "admin" ? "admin" : "student-dashboard",
           );
         }}
       />
@@ -68,7 +70,7 @@ export default function Home() {
   }
 
   const isTeacher = profile.role === "admin";
-  const title = screen === "admin" ? "학급 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : screen === "settings-students" ? "학생 정보 관리" : screen === "guide" ? "사용 가이드" : "수업·문항 설정";
+  const title = screen === "admin" ? "학급 대시보드" : screen === "student-dashboard" ? "나의 학습 대시보드" : screen === "student" ? "나의 배움짝" : screen === "student-results" ? "활동 후 결과 입력" : screen === "matching" ? "짝 매칭 관리" : screen === "settings-roster" ? "학급 명단 확인" : screen === "settings-students" ? "학생 정보 관리" : screen === "guide" ? "사용 가이드" : "수업·문항 설정";
   const schoolLabel = isTeacher
     ? `${profile.subject ?? "교과목 미설정"} 교사`
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
@@ -155,6 +157,7 @@ export default function Home() {
           </>
         ) : (
           <>
+            <button className={screen === "student-dashboard" ? "side-link active" : "side-link"} onClick={() => setScreen("student-dashboard")}>▦ <span>나의 학습 대시보드</span></button>
             <button className={screen === "student" ? "side-link active" : "side-link"} onClick={() => setScreen("student")}>◌ <span>나의 배움짝</span></button>
             <button className={screen === "student-results" ? "side-link active" : "side-link"} onClick={() => setScreen("student-results")}>✓ <span>활동 후 결과 입력</span></button>
           </>
@@ -233,6 +236,8 @@ export default function Home() {
         )}
         {screen === "admin" ? (
           <TeacherDashboard key={`dashboard-${profile.subject}`} />
+        ) : screen === "student-dashboard" ? (
+          <StudentProgressDashboard key={`student-dashboard-${profile.subject}`} profile={profile} />
         ) : screen === "student" ? (
           <StudentLessonDashboard key={`student-${profile.subject}`} profile={profile} />
         ) : screen === "student-results" ? (
