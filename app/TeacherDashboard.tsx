@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatLessonPeriod } from "./lesson-period";
 import { ComicCue } from "./ComicUI";
 
 type AnswerStatus = "solved" | "unsolved";
@@ -299,7 +300,7 @@ export default function TeacherDashboard() {
           <p>
             {selectedLesson.grade}학년 {selectedLesson.class_number}반 ·{" "}
             {formatDate(selectedLesson.learning_date)} ·{" "}
-            {selectedLesson.learning_time.slice(0, 5)}
+            {formatLessonPeriod(selectedLesson.learning_time)}
           </p>
         </div>
         <label className="dashboard-lesson-switch">

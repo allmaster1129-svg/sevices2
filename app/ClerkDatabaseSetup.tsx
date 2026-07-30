@@ -338,23 +338,29 @@ export default function ClerkDatabaseSetup({
               </label>
               <label>
                 반
-                <input
-                  type="number"
-                  min={1}
-                  max={50}
+                <select
                   value={classNumber}
                   onChange={(event) => setClassNumber(Number(event.target.value))}
-                />
+                >
+                  {Array.from({ length: 50 }, (_, index) => index + 1).map(
+                    (value) => (
+                      <option key={value} value={value}>{value}반</option>
+                    ),
+                  )}
+                </select>
               </label>
               <label>
                 번호
-                <input
-                  type="number"
-                  min={1}
-                  max={100}
+                <select
                   value={studentNumber}
                   onChange={(event) => setStudentNumber(Number(event.target.value))}
-                />
+                >
+                  {Array.from({ length: 100 }, (_, index) => index + 1).map(
+                    (value) => (
+                      <option key={value} value={value}>{value}번</option>
+                    ),
+                  )}
+                </select>
               </label>
             </div>
           )}

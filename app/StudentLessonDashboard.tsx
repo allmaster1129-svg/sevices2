@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import { ComicCue } from "./ComicUI";
+import { formatLessonPeriod } from "./lesson-period";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -201,7 +202,7 @@ export default function StudentLessonDashboard({
                   <span>{formatDate(lesson.learning_date)}</span>
                   <b>{lesson.subject}</b>
                   <small>
-                    {lesson.learning_time.slice(0, 5)} ·{" "}
+                    {formatLessonPeriod(lesson.learning_time)} ·{" "}
                     {lesson.question_count}개 문항
                   </small>
                   <i>{lesson.response ? "저장 완료" : "미응답"}</i>
@@ -288,7 +289,7 @@ export default function StudentLessonDashboard({
                 <div>
                   <span>
                     {formatDate(selectedLesson.learning_date)} ·{" "}
-                    {selectedLesson.learning_time.slice(0, 5)}
+                    {formatLessonPeriod(selectedLesson.learning_time)}
                   </span>
                   <h2>{selectedLesson.subject} 수업</h2>
                   <p>

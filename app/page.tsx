@@ -13,6 +13,7 @@ import TeacherDashboard from "./TeacherDashboard";
 import StudentActivityResults from "./StudentActivityResults";
 import NotificationCenter from "./NotificationCenter";
 import UsageGuide from "./UsageGuide";
+import StudentProfileEditor from "./StudentProfileEditor";
 import "./settings.module.css";
 import "./clerk.module.css";
 import "./notifications-guide.css";
@@ -41,6 +42,7 @@ export default function Home() {
   const [screen, setScreen] = useState<Screen>("login");
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [signingOut, setSigningOut] = useState(false);
+  const [profileEditorOpen, setProfileEditorOpen] = useState(false);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
   const score = useMemo(() => Math.round((Object.values(answers).filter((a) => a === "know").length / Math.max(done, 1)) * 100), [answers, done]);
@@ -103,10 +105,22 @@ export default function Home() {
             <b>도움이 필요하신가요?</b>
             <span>사용 가이드 보기 →</span>
           </button>
-          <div className="profile">
-            <span className="mini-avatar">{isTeacher ? "쌤" : profile.displayName.slice(0, 1)}</span>
-            <span><b>{profile.displayName}</b><small>{isTeacher ? "교사 계정" : "학생 계정"}</small></span>
-          </div>
+          {isTeacher ? (
+            <div className="profile">
+              <span className="mini-avatar">쌤</span>
+              <span><b>{profile.displayName}</b><small>교사 계정</small></span>
+            </div>
+          ) : (
+            <button
+              type="button"
+              className="profile profile-button"
+              aria-label="학년, 반, 번호 변경"
+              onClick={() => setProfileEditorOpen(true)}
+            >
+              <span className="mini-avatar">{profile.displayName.slice(0, 1)}</span>
+              <span><b>{profile.displayName}</b><small>학급 정보 변경</small></span>
+            </button>
+          )}
           <button
             type="button"
             className="logout-button"
@@ -145,6 +159,13 @@ export default function Home() {
           />
         )}
       </main>
+      {!isTeacher && profileEditorOpen && (
+        <StudentProfileEditor
+          profile={profile}
+          onClose={() => setProfileEditorOpen(false)}
+          onSaved={setProfile}
+        />
+      )}
     </div>
   );
 }

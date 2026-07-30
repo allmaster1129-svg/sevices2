@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ComicCue } from "./ComicUI";
+import { formatLessonPeriod, LESSON_PERIODS } from "./lesson-period";
 
 type QuestionDraft = {
   number: number;
@@ -152,7 +153,7 @@ export default function TeacherLessonSettings({
           <p className="overline">TEACHER ADMIN / LESSON SETUP</p>
           <h1>수업과 풀이 문항을 설정해요</h1>
           <p>
-            학급과 수업 시간을 지정하고 학생이 풀 문항 정보를 입력해 주세요.
+            학급과 수업 교시를 지정하고 학생이 풀 문항 정보를 입력해 주세요.
           </p>
         </div>
         <span className="settings-count">
@@ -183,7 +184,7 @@ export default function TeacherLessonSettings({
           <div className="panel-head">
             <div>
               <h2>수업 기본 정보</h2>
-              <p>학년·반·날짜·시간을 기준으로 학생 화면과 연결됩니다.</p>
+              <p>학년·반·날짜·교시를 기준으로 학생 화면과 연결됩니다.</p>
             </div>
             <span className="teacher-only-badge">교사 전용</span>
           </div>
@@ -202,13 +203,16 @@ export default function TeacherLessonSettings({
             </label>
             <label>
               반
-              <input
-                type="number"
-                min={1}
-                max={50}
+              <select
                 value={classNumber}
                 onChange={(event) => setClassNumber(Number(event.target.value))}
-              />
+              >
+                {Array.from({ length: 50 }, (_, index) => index + 1).map(
+                  (value) => (
+                    <option key={value} value={value}>{value}반</option>
+                  ),
+                )}
+              </select>
             </label>
             <label>
               수업 날짜
@@ -219,12 +223,15 @@ export default function TeacherLessonSettings({
               />
             </label>
             <label>
-              시작 시간
-              <input
-                type="time"
+              교시
+              <select
                 value={learningTime}
                 onChange={(event) => setLearningTime(event.target.value)}
-              />
+              >
+                {LESSON_PERIODS.map(({ period, time }) => (
+                  <option key={period} value={time}>{period}교시</option>
+                ))}
+              </select>
             </label>
             <label>
               과목
@@ -316,7 +323,7 @@ export default function TeacherLessonSettings({
             {grade}학년 {classNumber}반
           </h3>
           <p>
-            {learningDate} · {learningTime}
+            {learningDate} · {formatLessonPeriod(learningTime)}
             <br />
             {subject} · {questionCount}개 문항
           </p>
@@ -341,7 +348,7 @@ export default function TeacherLessonSettings({
                     {lesson.grade}학년 {lesson.class_number}반
                   </b>
                   <span>
-                    {lesson.learning_date} {lesson.learning_time.slice(0, 5)}
+                    {lesson.learning_date} {formatLessonPeriod(lesson.learning_time)}
                   </span>
                   <small>{lesson.question_count}개 문항</small>
                 </div>

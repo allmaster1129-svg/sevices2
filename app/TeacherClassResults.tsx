@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import { formatLessonPeriod } from "./lesson-period";
 import { ComicCue } from "./ComicUI";
 
 type AnswerStatus = "solved" | "unsolved";
@@ -247,7 +248,7 @@ export default function TeacherClassResults() {
           <div className="selected-lesson-time">
             <span>선택한 수업</span>
             <b>{formatLessonDate(selectedLesson.learning_date)}</b>
-            <small>{selectedLesson.learning_time.slice(0, 5)} 시작</small>
+            <small>{formatLessonPeriod(selectedLesson.learning_time)}</small>
           </div>
         )}
       </div>
