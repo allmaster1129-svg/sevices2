@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from "react";
 import { ComicCue } from "./ComicUI";
+import { formatLessonPeriod } from "./lesson-period";
 
 type Lesson = {
   id: string;
@@ -41,7 +42,7 @@ type MatchResult = {
 };
 
 function lessonLabel(lesson: Lesson) {
-  return `${lesson.learning_date} · ${lesson.subject} · ${lesson.question_count}문항`;
+  return `${lesson.learning_date} · ${formatLessonPeriod(lesson.learning_time)} · ${lesson.subject} · ${lesson.question_count}문항`;
 }
 
 function problemLabel(numbers: number[]) {

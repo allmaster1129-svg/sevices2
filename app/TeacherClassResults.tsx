@@ -241,7 +241,8 @@ export default function TeacherClassResults() {
           >
             {classLessons.map((lesson) => (
               <option value={lesson.id} key={lesson.id}>
-                {lesson.learning_date} · {lesson.subject} · {lesson.question_count}문항
+                {lesson.learning_date} · {formatLessonPeriod(lesson.learning_time)} ·{" "}
+                {lesson.subject} · {lesson.question_count}문항
               </option>
             ))}
           </select>

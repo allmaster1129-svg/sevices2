@@ -314,7 +314,8 @@ export default function TeacherDashboard() {
             {lessons.map((lesson) => (
               <option value={lesson.id} key={lesson.id}>
                 {lesson.learning_date} · {lesson.grade}학년{" "}
-                {lesson.class_number}반 · {lesson.subject}
+                {lesson.class_number}반 · {formatLessonPeriod(lesson.learning_time)} ·{" "}
+                {lesson.subject}
               </option>
             ))}
           </select>
