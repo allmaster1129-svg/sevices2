@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatLessonPeriod } from "./lesson-period";
 import { ComicCue } from "./ComicUI";
+import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -77,9 +78,11 @@ export default function TeacherClassResults() {
         setStudents(result.students ?? []);
         setResponses(result.responses ?? []);
         if (nextLessons.length) {
-          const firstClass = `${nextLessons[0].grade}-${nextLessons[0].class_number}`;
-          setClassKey(firstClass);
-          setLessonId(nextLessons[0].id);
+          const nextLesson =
+            getRememberedLesson("teacher-class-results", nextLessons) ??
+            nextLessons[0];
+          setClassKey(`${nextLesson.grade}-${nextLesson.class_number}`);
+          setLessonId(nextLesson.id);
         }
       })
       .catch((reason) =>
@@ -162,6 +165,9 @@ export default function TeacherClassResults() {
         `${lesson.grade}-${lesson.class_number}` === nextClassKey,
     );
     setLessonId(firstLesson?.id ?? "");
+    if (firstLesson) {
+      rememberLesson("teacher-class-results", firstLesson);
+    }
   }
 
   if (loading) {
@@ -237,7 +243,15 @@ export default function TeacherClassResults() {
           수업
           <select
             value={selectedLesson?.id ?? ""}
-            onChange={(event) => setLessonId(event.target.value)}
+            onChange={(event) => {
+              const nextLesson = classLessons.find(
+                (lesson) => lesson.id === event.target.value,
+              );
+              setLessonId(event.target.value);
+              if (nextLesson) {
+                rememberLesson("teacher-class-results", nextLesson);
+              }
+            }}
           >
             {classLessons.map((lesson) => (
               <option value={lesson.id} key={lesson.id}>

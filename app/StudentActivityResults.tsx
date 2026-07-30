@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import { ComicCue } from "./ComicUI";
 import { formatLessonPeriod } from "./lesson-period";
+import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -73,7 +74,9 @@ export default function StudentActivityResults({
         }
         const nextLessons = data.lessons ?? [];
         const firstMatched =
-          nextLessons.find((lesson) => lesson.pairing) ?? nextLessons[0];
+          getRememberedLesson("student-activity-results", nextLessons) ??
+          nextLessons.find((lesson) => lesson.pairing) ??
+          nextLessons[0];
         setLessons(nextLessons);
         if (firstMatched) selectLesson(firstMatched);
       })
@@ -127,6 +130,7 @@ export default function StudentActivityResults({
       ),
     ) as Record<string, AnswerStatus>;
     setLessonId(lesson.id);
+    rememberLesson("student-activity-results", lesson);
     setAnswers(savedAnswers);
     setReflection(lesson.post_activity_response?.reflection ?? "");
     setMessage("");

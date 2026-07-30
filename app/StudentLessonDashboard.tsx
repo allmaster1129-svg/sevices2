@@ -4,6 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import { ComicCue } from "./ComicUI";
 import { formatLessonPeriod } from "./lesson-period";
+import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -74,8 +75,11 @@ export default function StudentLessonDashboard({
         const nextLessons = result.lessons ?? [];
         setLessons(nextLessons);
         if (nextLessons.length) {
-          setSelectedLessonId(nextLessons[0].id);
-          setAnswers(nextLessons[0].response?.answers ?? {});
+          const nextLesson =
+            getRememberedLesson("student-learning", nextLessons) ??
+            nextLessons[0];
+          setSelectedLessonId(nextLesson.id);
+          setAnswers(nextLesson.response?.answers ?? {});
         }
       })
       .catch((reason) => {
@@ -105,6 +109,7 @@ export default function StudentLessonDashboard({
 
   function selectLesson(lesson: StudentLesson) {
     setSelectedLessonId(lesson.id);
+    rememberLesson("student-learning", lesson);
     setAnswers(lesson.response?.answers ?? {});
     setMessage("");
     setError("");

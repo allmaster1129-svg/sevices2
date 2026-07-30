@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { ComicCue } from "./ComicUI";
 import { formatLessonPeriod } from "./lesson-period";
+import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
 type Lesson = {
   id: string;
@@ -73,10 +74,11 @@ export default function TeacherPairMatching() {
         const nextLessons = data.lessons ?? [];
         setLessons(nextLessons);
         if (nextLessons.length) {
-          setClassKey(
-            `${nextLessons[0].grade}-${nextLessons[0].class_number}`,
-          );
-          setLessonId(nextLessons[0].id);
+          const nextLesson =
+            getRememberedLesson("teacher-pair-matching", nextLessons) ??
+            nextLessons[0];
+          setClassKey(`${nextLesson.grade}-${nextLesson.class_number}`);
+          setLessonId(nextLesson.id);
         }
       })
       .catch((reason) =>
@@ -121,6 +123,9 @@ export default function TeacherPairMatching() {
         `${lesson.grade}-${lesson.class_number}` === nextClassKey,
     );
     setLessonId(firstLesson?.id ?? "");
+    if (firstLesson) {
+      rememberLesson("teacher-pair-matching", firstLesson);
+    }
   }
 
   async function createMatches(selectedLessonId = lessonId) {
@@ -220,6 +225,12 @@ export default function TeacherPairMatching() {
             onChange={(event) => {
               setResult(null);
               setLessonId(event.target.value);
+              const nextLesson = classLessons.find(
+                (lesson) => lesson.id === event.target.value,
+              );
+              if (nextLesson) {
+                rememberLesson("teacher-pair-matching", nextLesson);
+              }
             }}
           >
             {classLessons.map((lesson) => (

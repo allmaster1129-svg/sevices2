@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { formatLessonPeriod } from "./lesson-period";
 import { ComicCue } from "./ComicUI";
+import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -132,7 +133,9 @@ export default function TeacherDashboard() {
         setLessonId((current) =>
           current && nextLessons.some((lesson) => lesson.id === current)
             ? current
-            : (nextLessons[0]?.id ?? ""),
+            : (getRememberedLesson("teacher-dashboard", nextLessons)?.id ??
+              nextLessons[0]?.id ??
+              ""),
         );
         setError("");
       } catch (reason) {
@@ -478,7 +481,15 @@ export default function TeacherDashboard() {
           <span>수업 바꾸기</span>
           <select
             value={selectedLesson.id}
-            onChange={(event) => setLessonId(event.target.value)}
+            onChange={(event) => {
+              const nextLesson = lessons.find(
+                (lesson) => lesson.id === event.target.value,
+              );
+              setLessonId(event.target.value);
+              if (nextLesson) {
+                rememberLesson("teacher-dashboard", nextLesson);
+              }
+            }}
           >
             {lessons.map((lesson) => (
               <option value={lesson.id} key={lesson.id}>

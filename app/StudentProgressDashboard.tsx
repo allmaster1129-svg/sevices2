@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import { formatLessonPeriod } from "./lesson-period";
+import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -74,7 +75,11 @@ export default function StudentProgressDashboard({
         if (!active) return;
         const nextLessons = result.lessons ?? [];
         setLessons(nextLessons);
-        setLessonId(nextLessons[0]?.id ?? "");
+        setLessonId(
+          getRememberedLesson("student-progress", nextLessons)?.id ??
+            nextLessons[0]?.id ??
+            "",
+        );
       })
       .catch((reason) => {
         if (!active) return;
@@ -189,7 +194,15 @@ export default function StudentProgressDashboard({
               확인할 수업
               <select
                 value={lessonId}
-                onChange={(event) => setLessonId(event.target.value)}
+                onChange={(event) => {
+                  const nextLesson = lessons.find(
+                    (lesson) => lesson.id === event.target.value,
+                  );
+                  setLessonId(event.target.value);
+                  if (nextLesson) {
+                    rememberLesson("student-progress", nextLesson);
+                  }
+                }}
               >
                 {lessons.map((lesson) => (
                   <option key={lesson.id} value={lesson.id}>
