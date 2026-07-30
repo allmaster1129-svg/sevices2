@@ -130,7 +130,7 @@ export default function StudentProfileEditor({
           {profile.displayName.slice(0, 1)}
         </div>
         <b className="profile-editor-name">{profile.displayName}</b>
-        <div className="profile-editor-fields">
+        <div className="profile-editor-fields student-profile-fields">
           <SubjectMultiSelect
             value={subjects}
             label="학습 교과목"
@@ -141,15 +141,7 @@ export default function StudentProfileEditor({
               }
             }}
           />
-          <label>
-            현재 조회 과목
-            <select value={subject} onChange={(event) => setSubject(event.target.value)}>
-              {subjects.map((value) => (
-                <option key={value} value={value}>{value}</option>
-              ))}
-            </select>
-          </label>
-          <label>
+          <label className="student-profile-grade">
             학년
             <select value={grade} onChange={(event) => setGrade(Number(event.target.value))}>
               {[1, 2, 3].map((value) => (
@@ -157,7 +149,15 @@ export default function StudentProfileEditor({
               ))}
             </select>
           </label>
-          <label>
+          <label className="student-profile-subject">
+            현재 조회 과목
+            <select value={subject} onChange={(event) => setSubject(event.target.value)}>
+              {subjects.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
+          <label className="student-profile-class">
             반
             <select value={classNumber} onChange={(event) => setClassNumber(Number(event.target.value))}>
               {Array.from({ length: 50 }, (_, index) => index + 1).map((value) => (
@@ -165,7 +165,7 @@ export default function StudentProfileEditor({
               ))}
             </select>
           </label>
-          <label>
+          <label className="student-profile-number">
             번호
             <select value={studentNumber} onChange={(event) => setStudentNumber(Number(event.target.value))}>
               {Array.from({ length: 100 }, (_, index) => index + 1).map((value) => (

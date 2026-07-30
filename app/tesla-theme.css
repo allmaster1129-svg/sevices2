@@ -1072,12 +1072,18 @@ label,
 .profile-editor-backdrop {
   background: rgba(23, 26, 32, 0.68);
   backdrop-filter: none;
+  align-items: start;
+  overflow-y: auto;
+  padding: 88px 22px 24px;
 }
 
 .profile-editor-dialog {
   padding: 32px;
   background: var(--tesla-white);
   background-image: none;
+  max-height: calc(100dvh - 112px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
 }
 
 .profile-editor-close {
@@ -1097,6 +1103,34 @@ label,
 
 .profile-editor-description {
   color: var(--tesla-graphite);
+}
+
+.student-profile-fields {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-areas:
+    "subjects subjects"
+    "grade class"
+    "subject number";
+}
+
+.student-profile-fields .subject-multi-select {
+  grid-area: subjects;
+}
+
+.student-profile-grade {
+  grid-area: grade;
+}
+
+.student-profile-subject {
+  grid-area: subject;
+}
+
+.student-profile-class {
+  grid-area: class;
+}
+
+.student-profile-number {
+  grid-area: number;
 }
 
 @media (max-width: 900px) {
@@ -1610,6 +1644,24 @@ label,
 
   .active-subject-switch select {
     min-width: 92px;
+  }
+
+  .profile-editor-backdrop {
+    padding: 76px 12px 12px;
+  }
+
+  .profile-editor-dialog {
+    max-height: calc(100dvh - 88px);
+  }
+
+  .student-profile-fields {
+    grid-template-columns: 1fr;
+    grid-template-areas:
+      "subjects"
+      "grade"
+      "subject"
+      "class"
+      "number";
   }
 }
 
