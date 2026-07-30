@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import { formatLessonPeriod } from "./lesson-period";
 
 type Lesson = {
   id: string;
@@ -38,11 +39,16 @@ type StudentPairing = {
 
 type StudentLesson = Lesson & {
   pairing: StudentPairing | null;
+  feedback: {
+    feedback: string;
+    source: "manual" | "gemini";
+    updated_at: string;
+  } | null;
 };
 
 type NotificationItem = {
   id: string;
-  type: "survey" | "activity" | "matching";
+  type: "survey" | "activity" | "matching" | "feedback";
   title: string;
   description: string;
   occurredAt: string;
@@ -100,7 +106,7 @@ export default function NotificationCenter({
             throw new Error(data.error ?? "알림 이력을 불러오지 못했습니다.");
           }
 
-          const nextItems = (data.lessons ?? [])
+          const matchingItems = (data.lessons ?? [])
             .filter(
               (lesson): lesson is StudentLesson & {
                 pairing: StudentPairing;
@@ -112,7 +118,21 @@ export default function NotificationCenter({
               title: "새 배움짝 매칭 완료",
               description: `${lesson.learning_date} · ${lesson.subject} 수업에서 ${lesson.pairing.partner_name} 학생과 배움짝으로 매칭됐어요.`,
               occurredAt: lesson.pairing.generated_at,
-            }))
+            }));
+          const feedbackItems = (data.lessons ?? [])
+            .filter(
+              (lesson): lesson is StudentLesson & {
+                feedback: NonNullable<StudentLesson["feedback"]>;
+              } => Boolean(lesson.feedback),
+            )
+            .map<NotificationItem>((lesson) => ({
+              id: `feedback-${lesson.id}-${lesson.feedback.updated_at}`,
+              type: "feedback",
+              title: "선생님 피드백 도착",
+              description: `${lesson.learning_date} · ${formatLessonPeriod(lesson.learning_time)} · ${lesson.subject} 수업의 학습 피드백이 도착했어요.`,
+              occurredAt: lesson.feedback.updated_at,
+            }));
+          const nextItems = [...matchingItems, ...feedbackItems]
             .sort(
               (a, b) =>
                 new Date(b.occurredAt).getTime() -
@@ -322,7 +342,7 @@ export default function NotificationCenter({
               <span>
                 {isTeacher
                   ? "수업 완료 현황을 확인하세요."
-                  : "새로운 배움짝 매칭을 확인하세요."}
+                  : "배움짝 매칭과 선생님 피드백을 확인하세요."}
               </span>
             </div>
             <em>{items.length}개</em>
@@ -336,7 +356,7 @@ export default function NotificationCenter({
               <p className="notification-empty">
                 {isTeacher
                   ? "아직 완료된 설문이나 배움짝 활동이 없어요."
-                  : "아직 완료된 배움짝 매칭이 없어요."}
+                  : "아직 도착한 매칭이나 피드백 알림이 없어요."}
               </p>
             ) : (
               items.map((item) => (
@@ -347,6 +367,8 @@ export default function NotificationCenter({
                   >
                     {item.type === "survey"
                       ? "✓"
+                      : item.type === "feedback"
+                        ? "✎"
                       : item.type === "matching"
                         ? "짝"
                         : "↔"}
