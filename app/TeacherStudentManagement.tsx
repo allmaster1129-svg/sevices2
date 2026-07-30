@@ -18,7 +18,8 @@ type Student = {
 
 type StudentDraft = {
   displayName: string;
-  classKey: string;
+  grade: string;
+  classNumber: string;
   studentNumber: string;
 };
 
@@ -75,7 +76,8 @@ export default function TeacherStudentManagement() {
     setEditingId(student.user_id);
     setDraft({
       displayName: student.display_name,
-      classKey: classKey(student),
+      grade: String(student.grade),
+      classNumber: String(student.class_number),
       studentNumber: String(student.student_number),
     });
     setMessage("");
@@ -90,15 +92,22 @@ export default function TeacherStudentManagement() {
 
   async function saveStudent() {
     if (!editingId || !draft) return;
-    const [grade, classNumber] = draft.classKey.split("-").map(Number);
+    const grade = Number(draft.grade);
+    const classNumber = Number(draft.classNumber);
     const studentNumber = Number(draft.studentNumber);
     if (
       !draft.displayName.trim() ||
       !Number.isInteger(grade) ||
+      grade < 1 ||
+      grade > 3 ||
       !Number.isInteger(classNumber) ||
-      !Number.isInteger(studentNumber)
+      classNumber < 1 ||
+      classNumber > 50 ||
+      !Number.isInteger(studentNumber) ||
+      studentNumber < 1 ||
+      studentNumber > 100
     ) {
-      setError("학생의 이름, 학급, 번호를 모두 입력해 주세요.");
+      setError("학년은 1~3, 반은 1~50, 번호는 1~100으로 입력해 주세요.");
       return;
     }
 
@@ -250,25 +259,34 @@ export default function TeacherStudentManagement() {
                             />
                           </label>
                           <label>
-                            학급
-                            <select
-                              value={draft.classKey}
+                            학년
+                            <input
+                              type="number"
+                              min={1}
+                              max={3}
+                              value={draft.grade}
                               onChange={(event) =>
                                 setDraft({
                                   ...draft,
-                                  classKey: event.target.value,
+                                  grade: event.target.value,
                                 })
                               }
-                            >
-                              {classes.map((item) => (
-                                <option
-                                  value={classKey(item)}
-                                  key={classKey(item)}
-                                >
-                                  {item.grade}학년 {item.class_number}반
-                                </option>
-                              ))}
-                            </select>
+                            />
+                          </label>
+                          <label>
+                            반
+                            <input
+                              type="number"
+                              min={1}
+                              max={50}
+                              value={draft.classNumber}
+                              onChange={(event) =>
+                                setDraft({
+                                  ...draft,
+                                  classNumber: event.target.value,
+                                })
+                              }
+                            />
                           </label>
                           <label>
                             번호

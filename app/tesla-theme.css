@@ -1286,7 +1286,7 @@ label,
 }
 
 .student-management-list article.editing {
-  grid-template-columns: minmax(170px, 1fr) minmax(170px, 1fr) 120px auto;
+  grid-template-columns: minmax(180px, 1fr) 95px 95px 110px auto;
   align-items: end;
   background: #edf3fb;
 }

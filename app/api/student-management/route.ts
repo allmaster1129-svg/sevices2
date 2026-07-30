@@ -181,16 +181,23 @@ export async function PATCH(request: Request) {
   const nextClassKey = `${body.grade}-${body.classNumber}`;
   if (
     student?.role !== "student" ||
-    !managed.classKeys.has(currentClassKey) ||
-    !managed.classKeys.has(nextClassKey)
+    !managed.classKeys.has(currentClassKey)
   ) {
     return NextResponse.json(
       { error: "담당 수업 학급의 학생만 수정할 수 있습니다." },
       { status: 403 },
     );
   }
+  if (!managed.classKeys.has(nextClassKey)) {
+    return NextResponse.json(
+      {
+        error: `${body.grade}학년 ${body.classNumber}반 수업을 먼저 개설한 후 학급을 변경해 주세요.`,
+      },
+      { status: 400 },
+    );
+  }
 
-  const { data: duplicate, error: duplicateError } = await teacher.supabase
+  const { data: duplicates, error: duplicateError } = await teacher.supabase
     .from("profiles")
     .select("user_id")
     .eq("role", "student")
@@ -198,7 +205,7 @@ export async function PATCH(request: Request) {
     .eq("class_number", body.classNumber)
     .eq("student_number", body.studentNumber)
     .neq("user_id", body.userId)
-    .maybeSingle();
+    .limit(1);
 
   if (duplicateError) {
     return NextResponse.json(
@@ -207,7 +214,7 @@ export async function PATCH(request: Request) {
     );
   }
 
-  if (duplicate) {
+  if (duplicates?.length) {
     return NextResponse.json(
       {
         error: `${body.grade}학년 ${body.classNumber}반 ${body.studentNumber}번은 이미 사용 중입니다.`,
@@ -216,7 +223,7 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const { data, error } = await teacher.supabase
+  const { data: updatedRows, error } = await teacher.supabase
     .from("profiles")
     .update({
       display_name: body.displayName.trim(),
@@ -230,8 +237,7 @@ export async function PATCH(request: Request) {
     .eq("role", "student")
     .select(
       "user_id, display_name, grade, class_number, student_number, updated_at",
-    )
-    .single();
+    );
 
   if (error) {
     return NextResponse.json(
@@ -240,5 +246,16 @@ export async function PATCH(request: Request) {
     );
   }
 
-  return NextResponse.json({ student: data });
+  const updatedStudent = updatedRows?.[0];
+  if (!updatedStudent) {
+    return NextResponse.json(
+      {
+        error:
+          "학생 정보를 변경할 권한이 없습니다. 담당 수업 학급인지 확인해 주세요.",
+      },
+      { status: 403 },
+    );
+  }
+
+  return NextResponse.json({ student: updatedStudent });
 }
