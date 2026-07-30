@@ -3,6 +3,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
 import { ComicCue } from "./ComicUI";
+import { formatLessonPeriod } from "./lesson-period";
 
 type AnswerStatus = "solved" | "unsolved";
 
@@ -230,6 +231,7 @@ export default function StudentActivityResults({
                   <span>{formatDate(lesson.learning_date)}</span>
                   <b>{lesson.subject}</b>
                   <small>
+                    {formatLessonPeriod(lesson.learning_time)} ·{" "}
                     {lesson.pairing
                       ? `${lesson.pairing.partner_name} 학생과 활동`
                       : "매칭 대기 중"}
@@ -248,6 +250,7 @@ export default function StudentActivityResults({
                 <div>
                   <span>
                     {formatDate(selectedLesson.learning_date)} ·{" "}
+                    {formatLessonPeriod(selectedLesson.learning_time)} ·{" "}
                     {selectedLesson.subject}
                   </span>
                   <h2>배움짝 활동 후 문제풀이 결과</h2>
