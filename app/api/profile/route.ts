@@ -56,10 +56,7 @@ async function getClerkProfileFallback() {
       metadata.role === "student" ? (metadata.classNumber ?? null) : null,
     student_number:
       metadata.role === "student" ? (metadata.studentNumber ?? null) : null,
-    subject:
-      metadata.role === "admin"
-        ? (metadata.subject ?? DEFAULT_TEACHER_SUBJECT)
-        : null,
+    subject: metadata.subject ?? DEFAULT_TEACHER_SUBJECT,
   };
 }
 
@@ -122,9 +119,9 @@ export async function POST(request: Request) {
     );
   }
 
-  if (body.role === "admin" && !isTeacherSubject(body.subject)) {
+  if (!isTeacherSubject(body.subject)) {
     return NextResponse.json(
-      { error: "담당 교과목을 선택해 주세요." },
+      { error: "과목을 선택해 주세요." },
       { status: 400 },
     );
   }
@@ -134,7 +131,7 @@ export async function POST(request: Request) {
     body.role === "student" ? Number(body.classNumber) : null;
   const studentNumber =
     body.role === "student" ? Number(body.studentNumber) : null;
-  const subject = body.role === "admin" ? body.subject!.trim() : null;
+  const subject = body.subject!.trim();
 
   const supabase = await createClient();
   const { data, error } = await supabase

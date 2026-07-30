@@ -1230,7 +1230,7 @@ label,
 .student-management-heading,
 .student-management-list article {
   display: grid;
-  grid-template-columns: 90px minmax(180px, 1.3fr) minmax(160px, 1fr) 110px;
+  grid-template-columns: 80px minmax(160px, 1.25fr) minmax(140px, 1fr) minmax(110px, .8fr) 110px;
   gap: 16px;
   align-items: center;
 }
@@ -1286,7 +1286,7 @@ label,
 }
 
 .student-management-list article.editing {
-  grid-template-columns: minmax(180px, 1fr) 95px 95px 110px auto;
+  grid-template-columns: minmax(170px, 1fr) minmax(120px, .8fr) 90px 90px 100px auto;
   align-items: end;
   background: #edf3fb;
 }
@@ -1298,7 +1298,8 @@ label,
   font-weight: 700;
 }
 
-.student-management-list article.editing input {
+.student-management-list article.editing input,
+.student-management-list article.editing select {
   min-height: 48px;
   margin-top: 8px;
   border-color: #b8bec7;

@@ -57,7 +57,7 @@ export default function Home() {
         onComplete={(savedProfile) => {
           setProfile(savedProfile);
           setScreen(
-            savedProfile.role === "admin" ? "settings-problems" : "student",
+            savedProfile.role === "admin" ? "admin" : "student",
           );
         }}
       />
@@ -190,7 +190,7 @@ export default function Home() {
           onClose={() => setProfileEditorOpen(false)}
           onSaved={(savedProfile) => {
             setProfile(savedProfile);
-            setScreen("settings-problems");
+            setScreen("admin");
           }}
         />
       )}

@@ -1,6 +1,10 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
+import {
+  DEFAULT_TEACHER_SUBJECT,
+  TEACHER_SUBJECTS,
+} from "./subjects";
 
 type ManagedClass = {
   grade: number;
@@ -13,11 +17,13 @@ type Student = {
   grade: number;
   class_number: number;
   student_number: number;
+  subject: string | null;
   updated_at: string;
 };
 
 type StudentDraft = {
   displayName: string;
+  subject: string;
   grade: string;
   classNumber: string;
   studentNumber: string;
@@ -76,6 +82,7 @@ export default function TeacherStudentManagement() {
     setEditingId(student.user_id);
     setDraft({
       displayName: student.display_name,
+      subject: student.subject ?? DEFAULT_TEACHER_SUBJECT,
       grade: String(student.grade),
       classNumber: String(student.class_number),
       studentNumber: String(student.student_number),
@@ -121,6 +128,7 @@ export default function TeacherStudentManagement() {
         body: JSON.stringify({
           userId: editingId,
           displayName: draft.displayName,
+          subject: draft.subject,
           grade,
           classNumber,
           studentNumber,
@@ -228,6 +236,7 @@ export default function TeacherStudentManagement() {
               <span>번호</span>
               <span>학생</span>
               <span>소속 학급</span>
+              <span>과목</span>
               <span>관리</span>
             </div>
             {!visibleStudents.length ? (
@@ -257,6 +266,22 @@ export default function TeacherStudentManagement() {
                                 })
                               }
                             />
+                          </label>
+                          <label>
+                            과목
+                            <select
+                              value={draft.subject}
+                              onChange={(event) =>
+                                setDraft({
+                                  ...draft,
+                                  subject: event.target.value,
+                                })
+                              }
+                            >
+                              {TEACHER_SUBJECTS.map((value) => (
+                                <option key={value} value={value}>{value}</option>
+                              ))}
+                            </select>
                           </label>
                           <label>
                             학년
@@ -337,6 +362,7 @@ export default function TeacherStudentManagement() {
                           <span>
                             {student.grade}학년 {student.class_number}반
                           </span>
+                          <span>{student.subject ?? "과목 미설정"}</span>
                           <button
                             type="button"
                             className="secondary"

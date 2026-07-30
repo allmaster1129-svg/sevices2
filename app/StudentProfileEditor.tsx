@@ -3,6 +3,10 @@
 import { useState } from "react";
 import { useUser } from "@clerk/nextjs";
 import type { AccountProfile } from "./ClerkDatabaseSetup";
+import {
+  DEFAULT_TEACHER_SUBJECT,
+  TEACHER_SUBJECTS,
+} from "./subjects";
 
 type ApiProfile = {
   role: "student" | "admin";
@@ -26,6 +30,9 @@ export default function StudentProfileEditor({
   const [grade, setGrade] = useState(profile.grade ?? 1);
   const [classNumber, setClassNumber] = useState(profile.classNumber ?? 1);
   const [studentNumber, setStudentNumber] = useState(profile.studentNumber ?? 1);
+  const [subject, setSubject] = useState(
+    profile.subject ?? DEFAULT_TEACHER_SUBJECT,
+  );
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
 
@@ -41,6 +48,7 @@ export default function StudentProfileEditor({
           grade,
           classNumber,
           studentNumber,
+          subject,
         },
       });
 
@@ -53,6 +61,7 @@ export default function StudentProfileEditor({
           grade,
           classNumber,
           studentNumber,
+          subject,
         }),
       });
       const result = (await response.json()) as {
@@ -72,7 +81,7 @@ export default function StudentProfileEditor({
         grade: result.profile.grade,
         classNumber: result.profile.class_number,
         studentNumber: result.profile.student_number,
-        subject: null,
+        subject: result.profile.subject,
         databaseSynced: result.databaseSynced ?? true,
         syncWarning: result.syncWarning,
       });
@@ -115,6 +124,14 @@ export default function StudentProfileEditor({
         </div>
         <b className="profile-editor-name">{profile.displayName}</b>
         <div className="profile-editor-fields">
+          <label>
+            과목
+            <select value={subject} onChange={(event) => setSubject(event.target.value)}>
+              {TEACHER_SUBJECTS.map((value) => (
+                <option key={value} value={value}>{value}</option>
+              ))}
+            </select>
+          </label>
           <label>
             학년
             <select value={grade} onChange={(event) => setGrade(Number(event.target.value))}>

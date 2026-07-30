@@ -118,12 +118,13 @@ export default function ClerkDatabaseSetup({
       .then((profile) => {
         if (!active || !profile) return;
         const profileIsComplete =
-          (profile.role === "admin" && Boolean(profile.subject)) ||
+          Boolean(profile.subject) &&
+          ((profile.role === "admin") ||
           Boolean(
             profile.grade &&
               profile.classNumber &&
               profile.studentNumber,
-          );
+          ));
         if (profileIsComplete) {
           onComplete(profile);
         } else {
@@ -172,7 +173,7 @@ export default function ClerkDatabaseSetup({
         grade: role === "student" ? grade : null,
         classNumber: role === "student" ? classNumber : null,
         studentNumber: role === "student" ? studentNumber : null,
-        subject: role === "admin" ? subject : null,
+        subject,
       };
 
       await user.update({
@@ -189,7 +190,7 @@ export default function ClerkDatabaseSetup({
           grade: role === "student" ? grade : null,
           classNumber: role === "student" ? classNumber : null,
           studentNumber: role === "student" ? studentNumber : null,
-          subject: role === "admin" ? subject : null,
+          subject,
         }),
       });
       const result = (await response.json()) as {
@@ -336,45 +337,58 @@ export default function ClerkDatabaseSetup({
             />
           </label>
           {role === "student" && (
-            <div className="student-profile-fields">
+            <>
               <label>
-                학년
+                학습 과목
                 <select
-                  value={grade}
-                  onChange={(event) => setGrade(Number(event.target.value))}
+                  value={subject}
+                  onChange={(event) => setSubject(event.target.value)}
                 >
-                  <option value={1}>1학년</option>
-                  <option value={2}>2학년</option>
-                  <option value={3}>3학년</option>
+                  {TEACHER_SUBJECTS.map((value) => (
+                    <option key={value} value={value}>{value}</option>
+                  ))}
                 </select>
               </label>
-              <label>
-                반
-                <select
-                  value={classNumber}
-                  onChange={(event) => setClassNumber(Number(event.target.value))}
-                >
-                  {Array.from({ length: 50 }, (_, index) => index + 1).map(
-                    (value) => (
-                      <option key={value} value={value}>{value}반</option>
-                    ),
-                  )}
-                </select>
-              </label>
-              <label>
-                번호
-                <select
-                  value={studentNumber}
-                  onChange={(event) => setStudentNumber(Number(event.target.value))}
-                >
-                  {Array.from({ length: 100 }, (_, index) => index + 1).map(
-                    (value) => (
-                      <option key={value} value={value}>{value}번</option>
-                    ),
-                  )}
-                </select>
-              </label>
-            </div>
+              <div className="student-profile-fields">
+                <label>
+                  학년
+                  <select
+                    value={grade}
+                    onChange={(event) => setGrade(Number(event.target.value))}
+                  >
+                    <option value={1}>1학년</option>
+                    <option value={2}>2학년</option>
+                    <option value={3}>3학년</option>
+                  </select>
+                </label>
+                <label>
+                  반
+                  <select
+                    value={classNumber}
+                    onChange={(event) => setClassNumber(Number(event.target.value))}
+                  >
+                    {Array.from({ length: 50 }, (_, index) => index + 1).map(
+                      (value) => (
+                        <option key={value} value={value}>{value}반</option>
+                      ),
+                    )}
+                  </select>
+                </label>
+                <label>
+                  번호
+                  <select
+                    value={studentNumber}
+                    onChange={(event) => setStudentNumber(Number(event.target.value))}
+                  >
+                    {Array.from({ length: 100 }, (_, index) => index + 1).map(
+                      (value) => (
+                        <option key={value} value={value}>{value}번</option>
+                      ),
+                    )}
+                  </select>
+                </label>
+              </div>
+            </>
           )}
           {role === "admin" && (
             <label>
@@ -396,7 +410,7 @@ export default function ClerkDatabaseSetup({
               saving ||
               !name.trim() ||
               (role === "student" &&
-                (!grade || !classNumber || !studentNumber)) ||
+                (!grade || !classNumber || !studentNumber || !subject)) ||
               (role === "admin" && !subject)
             }
             onClick={saveProfile}

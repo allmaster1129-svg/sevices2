@@ -1,6 +1,7 @@
 import { auth } from "@clerk/nextjs/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
+import { isTeacherSubject } from "@/app/subjects";
 
 type StudentUpdateInput = {
   userId?: string;
@@ -8,6 +9,7 @@ type StudentUpdateInput = {
   grade?: number;
   classNumber?: number;
   studentNumber?: number;
+  subject?: string;
 };
 
 function validInteger(value: number | undefined, min: number, max: number) {
@@ -112,7 +114,7 @@ export async function GET() {
   const { data, error } = await teacher.supabase
     .from("profiles")
     .select(
-      "user_id, display_name, grade, class_number, student_number, updated_at",
+      "user_id, display_name, grade, class_number, student_number, subject, updated_at",
     )
     .eq("role", "student")
     .order("grade")
@@ -149,12 +151,13 @@ export async function PATCH(request: Request) {
   if (
     !body.userId ||
     !body.displayName?.trim() ||
+    !isTeacherSubject(body.subject) ||
     !validInteger(body.grade, 1, 3) ||
     !validInteger(body.classNumber, 1, 50) ||
     !validInteger(body.studentNumber, 1, 100)
   ) {
     return NextResponse.json(
-      { error: "학생의 이름, 학급, 번호를 올바르게 입력해 주세요." },
+      { error: "학생의 이름, 과목, 학급, 번호를 올바르게 입력해 주세요." },
       { status: 400 },
     );
   }
@@ -223,23 +226,36 @@ export async function PATCH(request: Request) {
     );
   }
 
-  const { data: updatedRows, error } = await teacher.supabase
-    .from("profiles")
-    .update({
-      display_name: body.displayName.trim(),
-      grade: body.grade,
-      class_number: body.classNumber,
-      student_number: body.studentNumber,
-      class_code: `${body.grade}-${body.classNumber}`,
-      updated_at: new Date().toISOString(),
-    })
-    .eq("user_id", body.userId)
-    .eq("role", "student")
-    .select(
-      "user_id, display_name, grade, class_number, student_number, updated_at",
-    );
+  const { data: updatedRows, error } = await teacher.supabase.rpc(
+    "teacher_update_student_profile",
+    {
+      target_user_id: body.userId,
+      target_display_name: body.displayName.trim(),
+      target_grade: body.grade,
+      target_class_number: body.classNumber,
+      target_student_number: body.studentNumber,
+      target_subject: body.subject,
+    },
+  );
 
   if (error) {
+    if (
+      error.code === "23505" ||
+      error.message.toLowerCase().includes("student number already exists")
+    ) {
+      return NextResponse.json(
+        {
+          error: `${body.grade}학년 ${body.classNumber}반 ${body.studentNumber}번은 이미 사용 중입니다.`,
+        },
+        { status: 409 },
+      );
+    }
+    if (error.code === "42501") {
+      return NextResponse.json(
+        { error: "담당 수업 학급의 학생만 수정할 수 있습니다." },
+        { status: 403 },
+      );
+    }
     return NextResponse.json(
       { error: readableSupabaseError(error.message) },
       { status: 500 },
@@ -250,8 +266,7 @@ export async function PATCH(request: Request) {
   if (!updatedStudent) {
     return NextResponse.json(
       {
-        error:
-          "학생 정보를 변경할 권한이 없습니다. 담당 수업 학급인지 확인해 주세요.",
+        error: "학생 정보를 저장하지 못했습니다. 잠시 후 다시 시도해 주세요.",
       },
       { status: 403 },
     );
