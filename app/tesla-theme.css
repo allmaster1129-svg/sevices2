@@ -1,0 +1,984 @@
+:root {
+  --tesla-blue: #3e6ae1;
+  --tesla-blue-hover: #3457b1;
+  --tesla-carbon: #171a20;
+  --tesla-graphite: #393c41;
+  --tesla-pewter: #5c5e62;
+  --tesla-silver: #8e8e8e;
+  --tesla-cloud: #eeeeee;
+  --tesla-pale: #d0d1d2;
+  --tesla-ash: #f4f4f4;
+  --tesla-white: #ffffff;
+  --ink: var(--tesla-carbon);
+  --muted: var(--tesla-pewter);
+  --line: var(--tesla-cloud);
+  --blue: var(--tesla-blue);
+  --navy: var(--tesla-carbon);
+}
+
+* {
+  box-shadow: none;
+}
+
+html {
+  background: var(--tesla-white);
+}
+
+body {
+  margin: 0;
+  background: var(--tesla-white);
+  background-image: none;
+  color: var(--tesla-carbon);
+  font-family: "Universal Sans Text", -apple-system, BlinkMacSystemFont, "Segoe UI",
+    Arial, sans-serif;
+  font-size: 16px;
+  line-height: 1.5;
+}
+
+button,
+input,
+select,
+textarea {
+  font-family: inherit;
+  transition:
+    border-color 0.33s cubic-bezier(0.5, 0, 0, 0.75),
+    background-color 0.33s cubic-bezier(0.5, 0, 0, 0.75),
+    color 0.33s cubic-bezier(0.5, 0, 0, 0.75);
+}
+
+button:hover,
+.primary:hover,
+.secondary:hover,
+.login-button:hover {
+  transform: none;
+}
+
+h1,
+h2,
+h3,
+h4,
+.logo,
+.login-mark {
+  font-family: "Universal Sans Display", -apple-system, BlinkMacSystemFont,
+    "Segoe UI", Arial, sans-serif !important;
+  font-weight: 500 !important;
+  letter-spacing: normal !important;
+}
+
+p,
+small,
+span,
+label {
+  letter-spacing: normal;
+}
+
+.app-shell {
+  min-height: 100vh;
+  background: var(--tesla-white);
+  background-image: none;
+}
+
+.sidebar {
+  width: 260px;
+  padding: 28px 20px 20px;
+  border: 0;
+  border-right: 1px solid var(--tesla-cloud);
+  background: var(--tesla-white);
+  box-shadow: none;
+}
+
+.logo {
+  padding: 0 12px;
+  color: var(--tesla-carbon);
+  font-size: 25px;
+}
+
+.logo span,
+.login-mark span {
+  color: var(--tesla-blue);
+}
+
+.logo::after {
+  display: none;
+}
+
+.school-pill {
+  margin: 28px 4px 32px;
+  padding: 12px 14px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-graphite);
+  box-shadow: none;
+  font-size: 14px;
+}
+
+.side-label {
+  padding: 0 12px 8px;
+  color: var(--tesla-silver);
+  font-size: 12px;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.side-link {
+  min-height: 44px;
+  margin: 2px 0;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 4px;
+  background: transparent;
+  color: var(--tesla-graphite);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+.side-link.active,
+.side-link:hover {
+  border: 0;
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+  box-shadow: none;
+  transform: none;
+  font-weight: 500;
+}
+
+.help-box,
+.logout-button,
+.profile-button {
+  border: 0;
+  border-radius: 4px;
+  box-shadow: none;
+}
+
+.help-box {
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+}
+
+.help-box:hover,
+.help-box.active,
+.profile-button:hover,
+.profile-button:focus-visible {
+  border: 0;
+  background: #e8e8e8;
+  color: var(--tesla-carbon);
+  box-shadow: none;
+  transform: none;
+}
+
+.help-box span,
+.profile-button small {
+  color: var(--tesla-pewter);
+}
+
+.logout-button {
+  border: 1px solid var(--tesla-pale);
+  background: var(--tesla-white);
+  color: var(--tesla-graphite);
+}
+
+.logout-button:hover {
+  border-color: var(--tesla-carbon);
+  background: var(--tesla-white);
+  color: var(--tesla-carbon);
+}
+
+.mini-avatar {
+  border-radius: 50%;
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+}
+
+.dashboard {
+  background: var(--tesla-white);
+}
+
+.topbar {
+  height: 64px;
+  border: 0;
+  background: rgba(255, 255, 255, 0.82);
+  backdrop-filter: blur(16px);
+  color: var(--tesla-carbon);
+}
+
+.breadcrumb {
+  color: var(--tesla-carbon);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.breadcrumb span {
+  color: var(--tesla-silver);
+}
+
+.account-role-label,
+.notification-heading em,
+.trend,
+.teacher-only-badge,
+.student-class-badge,
+.guide-role,
+.settings-count {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-graphite);
+  box-shadow: none;
+  font-weight: 500;
+}
+
+.notification-trigger {
+  color: var(--tesla-graphite);
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.notification-trigger:hover,
+.notification-trigger[aria-expanded="true"] {
+  color: var(--tesla-blue);
+}
+
+.notification-badge {
+  border-color: var(--tesla-white);
+  background: var(--tesla-blue);
+}
+
+.notification-dropdown {
+  border: 1px solid var(--tesla-cloud);
+  border-radius: 4px;
+  background: var(--tesla-white);
+  box-shadow: none;
+}
+
+.notification-heading {
+  border-bottom: 1px solid var(--tesla-cloud);
+  background: var(--tesla-white);
+  background-image: none;
+}
+
+.notification-item {
+  border-bottom: 1px solid var(--tesla-cloud);
+}
+
+.notification-icon,
+.notification-icon.survey,
+.notification-icon.activity {
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-blue);
+}
+
+.notification-heading span,
+.notification-item p,
+.notification-item time,
+.notification-empty,
+.notification-error {
+  color: var(--tesla-pewter);
+}
+
+.settings-page,
+.student-lessons-page,
+.activity-results-page,
+.teacher-dashboard-page,
+.class-results-page,
+.matching-page,
+.guide-page {
+  max-width: 1380px;
+}
+
+.settings-hero,
+.dashboard-hero,
+.student-lessons-hero,
+.activity-results-hero,
+.guide-hero {
+  min-height: auto;
+  margin: 0 0 32px;
+  padding: 56px 40px 40px;
+  border: 0;
+  background: var(--tesla-white);
+  background-image: none;
+  color: var(--tesla-carbon);
+  box-shadow: none;
+}
+
+.settings-hero h1,
+.dashboard-hero h1,
+.student-lessons-hero h1,
+.activity-results-hero h1,
+.guide-hero h1 {
+  max-width: 760px;
+  margin: 0 0 12px;
+  color: var(--tesla-carbon);
+  font-size: clamp(32px, 4vw, 40px);
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.settings-hero p:not(.overline),
+.dashboard-hero p:not(.overline),
+.student-lessons-hero p:not(.overline),
+.activity-results-hero p:not(.overline),
+.guide-hero > div > p:last-child {
+  max-width: 720px;
+  color: var(--tesla-graphite) !important;
+  font-size: 16px !important;
+  font-weight: 400;
+  line-height: 1.55;
+}
+
+.overline {
+  margin: 0 0 16px;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--tesla-blue);
+  box-shadow: none;
+  transform: none;
+  font-size: 14px;
+  font-weight: 500;
+  letter-spacing: normal;
+}
+
+.comic-cue,
+.login-comic-scene,
+.login-orb {
+  display: none;
+}
+
+.panel,
+.stat-card,
+.match-card,
+.login-card,
+.lesson-summary,
+.settings-tip,
+.guide-tip-panel,
+.tutorial-step,
+.profile-editor-dialog {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  box-shadow: none;
+}
+
+.panel::after,
+.stat-card::after,
+.settings-tip::after {
+  display: none;
+}
+
+.panel-head {
+  padding-bottom: 16px;
+  border-bottom: 1px solid var(--tesla-pale);
+}
+
+.panel h2,
+.panel-head h2,
+.guide-page h2 {
+  color: var(--tesla-carbon);
+  font-size: 20px;
+  font-weight: 500;
+}
+
+.panel-head p,
+.lesson-choice small,
+.student-question-copy p,
+.activity-question-list small,
+.dashboard-card-empty,
+.matched-students small,
+.dashboard-pair-grid article small {
+  color: var(--tesla-pewter) !important;
+}
+
+.primary,
+.login-button,
+.clerk-primary {
+  min-height: 44px;
+  padding: 11px 18px;
+  border: 3px solid transparent !important;
+  border-radius: 4px !important;
+  background: var(--tesla-blue) !important;
+  color: var(--tesla-white) !important;
+  box-shadow: none;
+  font-size: 14px !important;
+  font-weight: 500;
+}
+
+.primary:hover,
+.login-button:hover,
+.clerk-primary:hover {
+  background: var(--tesla-blue-hover) !important;
+}
+
+.primary:focus-visible,
+.login-button:focus-visible,
+.clerk-primary:focus-visible {
+  border-color: var(--tesla-white) !important;
+  outline: 2px solid var(--tesla-blue);
+}
+
+.secondary,
+.clerk-secondary,
+.settings-actions .secondary {
+  min-height: 44px;
+  padding: 11px 16px;
+  border: 1px solid var(--tesla-pale) !important;
+  border-radius: 4px !important;
+  background: var(--tesla-white) !important;
+  color: var(--tesla-graphite) !important;
+  box-shadow: none;
+  font-size: 14px !important;
+  font-weight: 500;
+}
+
+.secondary:hover,
+.clerk-secondary:hover {
+  border-color: var(--tesla-carbon) !important;
+  background: var(--tesla-white) !important;
+  color: var(--tesla-carbon) !important;
+}
+
+input,
+select,
+textarea,
+.lesson-meta-grid input,
+.lesson-meta-grid select,
+.question-editor input,
+.question-editor textarea,
+.profile-editor-fields select,
+.activity-reflection textarea {
+  min-height: 44px;
+  border: 1px solid var(--tesla-pale);
+  border-radius: 4px;
+  background: var(--tesla-white);
+  color: var(--tesla-carbon) !important;
+  box-shadow: none;
+  font-size: 15px !important;
+}
+
+input:focus,
+select:focus,
+textarea:focus,
+.profile-editor-fields select:focus {
+  border-color: var(--tesla-blue);
+  outline: 2px solid #3e6ae126;
+  box-shadow: none;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--tesla-silver);
+}
+
+label,
+.lesson-meta-grid label,
+.class-results-filters label,
+.matching-filters label,
+.activity-reflection {
+  color: var(--tesla-graphite) !important;
+  font-size: 14px !important;
+  font-weight: 500;
+}
+
+.lesson-form-card,
+.settings-card,
+.student-question-card,
+.activity-result-card,
+.dashboard-heatmap-card,
+.dashboard-difficult-card,
+.dashboard-pairs-card,
+.matching-card,
+.class-results-table-card {
+  padding: 28px;
+}
+
+.lesson-summary,
+.settings-tip {
+  background: var(--tesla-carbon);
+  color: var(--tesla-white);
+}
+
+.lesson-summary h3,
+.lesson-summary h4,
+.lesson-summary b,
+.settings-tip h3,
+.settings-tip b {
+  color: var(--tesla-white);
+}
+
+.lesson-summary p,
+.lesson-summary span,
+.lesson-summary small,
+.settings-tip p,
+.settings-tip span {
+  color: #d0d1d2;
+}
+
+.lesson-choice {
+  min-height: 104px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-white);
+  box-shadow: none;
+}
+
+.lesson-choice:hover,
+.lesson-choice.selected {
+  border: 0;
+  background: #e9e9e9;
+  box-shadow: none;
+}
+
+.lesson-choice span,
+.lesson-choice i {
+  color: var(--tesla-blue) !important;
+}
+
+.lesson-choice i {
+  border-radius: 4px;
+  background: var(--tesla-ash);
+}
+
+.student-class-badge,
+.activity-results-hero > span:not(.comic-cue) {
+  background: var(--tesla-ash);
+  color: var(--tesla-graphite);
+}
+
+.student-class-badge b,
+.activity-results-hero > span:not(.comic-cue) b {
+  color: var(--tesla-carbon);
+}
+
+.student-pairing-card {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-carbon);
+  background-image: none;
+  color: var(--tesla-white);
+}
+
+.student-pairing-head {
+  border-bottom-color: #5c5e62;
+}
+
+.student-pairing-head span,
+.student-pair-people small,
+.student-pair-tasks span,
+.student-pairing-waiting span {
+  color: #d0d1d2;
+}
+
+.student-pairing-head > b,
+.student-pair-tasks b {
+  border-radius: 4px;
+  background: #393c41;
+  color: var(--tesla-white);
+}
+
+.student-pair-people i,
+.student-pair-people > div:last-child i {
+  border-radius: 4px;
+  background: #393c41;
+  color: var(--tesla-white);
+}
+
+.student-pair-tasks > div {
+  border: 1px solid #5c5e62;
+  border-radius: 4px;
+  background: transparent;
+}
+
+.student-question-item,
+.activity-question-list article {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-white);
+}
+
+.student-question-number,
+.activity-question-list article > span,
+.question-index,
+.roster-number {
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+}
+
+.student-question-copy h3,
+.activity-question-list h3 {
+  color: var(--tesla-carbon);
+}
+
+.student-question-copy p,
+.activity-question-list small,
+.student-question-head p,
+.activity-result-head p {
+  color: var(--tesla-pewter) !important;
+  font-weight: 400;
+}
+
+.answer-toggle button,
+.activity-question-list button,
+.problem-pill {
+  min-height: 44px;
+  border: 1px solid var(--tesla-pale);
+  border-radius: 4px;
+  background: var(--tesla-white);
+  color: var(--tesla-graphite);
+  font-weight: 500;
+}
+
+.answer-solved.selected,
+.answer-unsolved.selected,
+.post-solved.selected,
+.post-unsolved.selected,
+.problem-pill.selected {
+  border-color: var(--tesla-blue) !important;
+  background: var(--tesla-blue) !important;
+  color: var(--tesla-white) !important;
+}
+
+.student-progress b,
+.activity-result-head > div:last-child b,
+.student-answer-footer > span b,
+.activity-result-footer > span b {
+  color: var(--tesla-blue);
+}
+
+.activity-partner-chip {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+}
+
+.activity-partner-chip span,
+.activity-partner-chip b {
+  color: var(--tesla-carbon);
+}
+
+.stat-card,
+.dashboard-stat-grid > .panel,
+.class-results-stats > .panel,
+.matching-stats > .panel {
+  background: var(--tesla-ash);
+  transform: none;
+}
+
+.ring,
+.dashboard-stat-grid article > i {
+  border-radius: 50%;
+  background: var(--tesla-white) !important;
+  color: var(--tesla-blue) !important;
+}
+
+.dashboard-heatmap-table th,
+.class-results-table th {
+  background: var(--tesla-white);
+  background-image: none;
+  color: var(--tesla-graphite);
+}
+
+.dashboard-heatmap-table td,
+.class-results-table td {
+  border-color: var(--tesla-cloud);
+}
+
+.dashboard-heatmap-table td i,
+.result-mark,
+.submission {
+  border-radius: 4px;
+}
+
+.dashboard-heatmap-table i.solved,
+.dashboard-heatmap-table i.unsolved,
+.result-mark.solved,
+.result-mark.unsolved,
+.submission.done {
+  background: var(--tesla-white);
+  color: var(--tesla-blue);
+}
+
+.dashboard-heatmap-table i.unanswered,
+.result-mark.unanswered,
+.submission.waiting {
+  background: #e5e5e5;
+  color: var(--tesla-pewter);
+}
+
+.tutorial-step {
+  min-height: 240px;
+  overflow: hidden;
+  background: var(--tesla-ash);
+}
+
+.tutorial-step::before,
+.tutorial-scene,
+.tutorial-action,
+.tutorial-step .paper-caption {
+  display: none;
+}
+
+.tutorial-copy {
+  padding: 32px;
+}
+
+.tutorial-copy p {
+  color: var(--tesla-graphite);
+  font-size: 15px;
+}
+
+.guide-tip-panel > div {
+  background: var(--tesla-carbon);
+  background-image: none;
+}
+
+.dashboard-card-empty,
+.student-empty,
+.activity-results-empty,
+.matching-empty,
+.class-results-empty,
+.dashboard-empty {
+  background: var(--tesla-ash);
+  background-image: none;
+}
+
+.dashboard-card-empty::before,
+.student-empty::before,
+.activity-results-empty::before,
+.matching-empty::before,
+.class-results-empty::before,
+.dashboard-empty::before {
+  border: 0;
+  background: var(--tesla-white);
+  color: var(--tesla-blue);
+  box-shadow: none;
+}
+
+.save-message.success,
+.save-message.error,
+.database-sync-warning,
+.profile-editor-error {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-graphite);
+}
+
+.login-page {
+  padding: 72px 32px 40px;
+  background: var(--tesla-white);
+  background-image: none;
+}
+
+.login-mark {
+  color: var(--tesla-carbon);
+}
+
+.login-card {
+  width: min(1040px, 100%);
+  min-height: 600px;
+  grid-template-columns: 1fr 1fr;
+  overflow: hidden;
+  background: var(--tesla-white);
+}
+
+.login-intro {
+  min-height: 600px;
+  padding: 72px 60px;
+  border: 0;
+  background: var(--tesla-ash);
+  background-image: none;
+}
+
+.login-intro h1 {
+  max-width: 520px;
+  color: var(--tesla-carbon);
+  font-size: 40px;
+  font-weight: 500;
+  line-height: 1.2;
+}
+
+.login-intro h1 em {
+  background: transparent;
+  color: var(--tesla-carbon);
+}
+
+.login-intro p:not(.overline) {
+  color: var(--tesla-graphite);
+  font-size: 16px;
+}
+
+.login-form {
+  padding: 72px 60px;
+  background: var(--tesla-white);
+}
+
+.login-form h2 {
+  color: var(--tesla-carbon);
+  font-size: 30px;
+}
+
+.role-tabs {
+  padding: 3px;
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+}
+
+.role-tabs button {
+  border-radius: 4px;
+  color: var(--tesla-pewter);
+}
+
+.role-tabs button.selected {
+  background: var(--tesla-white);
+  color: var(--tesla-carbon);
+}
+
+.account-chip {
+  color: var(--tesla-pewter);
+}
+
+.profile-editor-backdrop {
+  background: rgba(23, 26, 32, 0.68);
+  backdrop-filter: none;
+}
+
+.profile-editor-dialog {
+  padding: 32px;
+  background: var(--tesla-white);
+  background-image: none;
+}
+
+.profile-editor-close {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+}
+
+.profile-editor-avatar {
+  border: 0;
+  border-radius: 4px;
+  background: var(--tesla-ash);
+  color: var(--tesla-carbon);
+  box-shadow: none;
+}
+
+.profile-editor-description {
+  color: var(--tesla-graphite);
+}
+
+@media (max-width: 900px) {
+  .sidebar {
+    width: 220px;
+  }
+
+  .settings-hero,
+  .dashboard-hero,
+  .student-lessons-hero,
+  .activity-results-hero,
+  .guide-hero {
+    padding: 44px 28px 32px;
+  }
+}
+
+@media (max-width: 650px) {
+  body {
+    font-size: 15px;
+  }
+
+  .sidebar {
+    padding: 12px 14px;
+    border-bottom: 1px solid var(--tesla-cloud);
+    box-shadow: none;
+  }
+
+  .logo {
+    font-size: 23px;
+  }
+
+  .side-link {
+    border: 0;
+    background: var(--tesla-ash);
+  }
+
+  .topbar {
+    height: 60px;
+    min-height: 60px;
+    border: 0;
+    background: rgba(255, 255, 255, 0.9);
+  }
+
+  .notification-dropdown {
+    top: 64px;
+    border: 1px solid var(--tesla-cloud);
+  }
+
+  .settings-hero,
+  .dashboard-hero,
+  .student-lessons-hero,
+  .activity-results-hero,
+  .guide-hero {
+    margin-bottom: 20px;
+    padding: 36px 18px 24px;
+  }
+
+  .settings-hero h1,
+  .dashboard-hero h1,
+  .student-lessons-hero h1,
+  .activity-results-hero h1,
+  .guide-hero h1 {
+    font-size: 30px;
+    line-height: 1.25;
+  }
+
+  .panel,
+  .stat-card,
+  .match-card,
+  .lesson-summary,
+  .settings-tip {
+    border-radius: 4px;
+    box-shadow: none;
+  }
+
+  .lesson-form-card,
+  .settings-card,
+  .student-question-card,
+  .activity-result-card,
+  .dashboard-heatmap-card,
+  .dashboard-difficult-card,
+  .dashboard-pairs-card,
+  .matching-card,
+  .class-results-table-card {
+    padding: 20px;
+  }
+
+  .login-page {
+    padding: 66px 14px 24px;
+  }
+
+  .login-card {
+    min-height: auto;
+    grid-template-columns: 1fr;
+  }
+
+  .login-intro {
+    min-height: auto;
+    padding: 44px 24px;
+    border-bottom: 0;
+  }
+
+  .login-intro h1 {
+    font-size: 32px;
+  }
+
+  .login-form {
+    padding: 40px 24px;
+  }
+
+  .profile-editor-dialog {
+    padding: 28px 20px 20px;
+  }
+}
