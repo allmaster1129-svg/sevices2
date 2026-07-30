@@ -1569,8 +1569,41 @@ label,
   accent-color: #174ea6;
 }
 
-.matching-start .primary {
+.matching-actions {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.matching-hero > .matching-actions {
+  position: absolute;
+  z-index: 5;
+  top: 16px;
+  right: 18px;
+}
+
+.matching-start .matching-actions {
   margin-top: 20px;
+}
+
+@media (max-width: 650px) {
+  .matching-hero > .matching-actions {
+    position: static;
+    align-items: stretch;
+    flex-direction: column;
+    margin-top: 18px;
+  }
+
+  .matching-hero > .matching-actions .rematch-button {
+    width: 100%;
+    margin-top: 0;
+  }
+
+  .matching-start .matching-actions {
+    align-items: stretch;
+    flex-direction: column;
+  }
 }
 
 .activity-all-solved {

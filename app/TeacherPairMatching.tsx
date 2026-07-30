@@ -40,6 +40,7 @@ type MatchResult = {
   totalClassStudents: number;
   respondedStudents: number;
   excludedStudents: number;
+  strategy: "recommended" | "random" | "saved";
 };
 
 function lessonLabel(lesson: Lesson) {
@@ -58,6 +59,7 @@ export default function TeacherPairMatching() {
   const [lessonId, setLessonId] = useState("");
   const [result, setResult] = useState<MatchResult | null>(null);
   const [loadingLessons, setLoadingLessons] = useState(true);
+  const [loadingResult, setLoadingResult] = useState(false);
   const [matching, setMatching] = useState(false);
   const [error, setError] = useState("");
 
@@ -115,6 +117,46 @@ export default function TeacherPairMatching() {
     [classKey, lessons],
   );
 
+  useEffect(() => {
+    if (!lessonId) {
+      setResult(null);
+      return;
+    }
+
+    let active = true;
+    setLoadingResult(true);
+    setError("");
+    fetch(`/api/pair-matching?lessonId=${encodeURIComponent(lessonId)}`, {
+      cache: "no-store",
+    })
+      .then(async (response) => {
+        const data = (await response.json()) as {
+          result?: MatchResult | null;
+          error?: string;
+        };
+        if (!response.ok) {
+          throw new Error(data.error ?? "저장된 매칭을 불러오지 못했습니다.");
+        }
+        if (active) setResult(data.result ?? null);
+      })
+      .catch((reason) => {
+        if (!active) return;
+        setResult(null);
+        setError(
+          reason instanceof Error
+            ? reason.message
+            : "저장된 매칭을 불러오는 중 오류가 발생했습니다.",
+        );
+      })
+      .finally(() => {
+        if (active) setLoadingResult(false);
+      });
+
+    return () => {
+      active = false;
+    };
+  }, [lessonId]);
+
   function changeClass(nextClassKey: string) {
     setClassKey(nextClassKey);
     setResult(null);
@@ -128,7 +170,10 @@ export default function TeacherPairMatching() {
     }
   }
 
-  async function createMatches(selectedLessonId = lessonId) {
+  async function createMatches(
+    mode: "recommended" | "random" = "recommended",
+    selectedLessonId = lessonId,
+  ) {
     if (!selectedLessonId || matching) return;
     setMatching(true);
     setError("");
@@ -136,7 +181,7 @@ export default function TeacherPairMatching() {
       const response = await fetch("/api/pair-matching", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ lessonId: selectedLessonId }),
+        body: JSON.stringify({ lessonId: selectedLessonId, mode }),
       });
       const data = (await response.json()) as MatchResult & { error?: string };
       if (!response.ok) {
@@ -194,13 +239,22 @@ export default function TeacherPairMatching() {
           </p>
         </div>
         {result && (
-          <button
-            className="primary rematch-button"
-            disabled={!lessonId || matching}
-            onClick={() => createMatches()}
-          >
-            {matching ? "매칭 중..." : "↻ 다시 매칭"}
-          </button>
+          <div className="matching-actions">
+            <button
+              className="secondary rematch-button"
+              disabled={!lessonId || matching}
+              onClick={() => createMatches("random")}
+            >
+              임의 매칭
+            </button>
+            <button
+              className="primary rematch-button"
+              disabled={!lessonId || matching}
+              onClick={() => createMatches("recommended")}
+            >
+              {matching ? "매칭 중..." : "↻ 추천 다시 매칭"}
+            </button>
+          </div>
         )}
         <ComicCue label="PAIR MISSION" accent="mint" mood="cheer" prop="note">
           서로 설명해 줄 문제가 많은 친구부터 연결해요!
@@ -248,25 +302,41 @@ export default function TeacherPairMatching() {
 
       {error && <p className="save-message error">{error}</p>}
 
-      {!result && !error && (
-        <div className="panel matching-empty matching-start">
-          <h2>선택한 수업의 배움짝을 매칭해 주세요.</h2>
-          <p>
-            학생들의 설문 결과는 매칭 버튼을 누르기 전까지 계산하거나
-            저장하지 않습니다.
-          </p>
-          <button
-            type="button"
-            className="primary"
-            disabled={!lessonId || matching}
-            onClick={() => createMatches()}
-          >
-            {matching ? "매칭 중..." : "배움짝 매칭하기"}
-          </button>
+      {loadingResult && (
+        <div className="panel matching-empty">
+          저장된 배움짝 현황을 확인하고 있어요...
         </div>
       )}
 
-      {result && (
+      {!loadingResult && !result && !error && (
+        <div className="panel matching-empty matching-start">
+          <h2>선택한 수업의 배움짝을 매칭해 주세요.</h2>
+          <p>
+            추천 매칭은 설문 결과를 기준으로 연결하고, 임의 매칭은 등록
+            학생 전체를 무작위로 연결합니다.
+          </p>
+          <div className="matching-actions">
+            <button
+              type="button"
+              className="secondary"
+              disabled={!lessonId || matching}
+              onClick={() => createMatches("random")}
+            >
+              임의 매칭
+            </button>
+            <button
+              type="button"
+              className="primary"
+              disabled={!lessonId || matching}
+              onClick={() => createMatches("recommended")}
+            >
+              {matching ? "매칭 중..." : "추천 매칭하기"}
+            </button>
+          </div>
+        </div>
+      )}
+
+      {!loadingResult && result && (
         <>
           <div className="matching-stats">
             <div className="panel">
@@ -277,7 +347,13 @@ export default function TeacherPairMatching() {
             <div className="panel">
               <span>완성된 배움짝</span>
               <b>{result.pairs.length}팀</b>
-              <small>겹침 점수 우선 배정</small>
+              <small>
+                {result.strategy === "random"
+                  ? "등록 학생 임의 배정"
+                  : result.strategy === "saved"
+                    ? "저장된 매칭 현황"
+                    : "겹침 점수 우선 배정"}
+              </small>
             </div>
             <div className="panel">
               <span>매칭 제외</span>
