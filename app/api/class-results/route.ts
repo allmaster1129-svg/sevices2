@@ -63,7 +63,6 @@ export async function GET() {
     .select(
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
     )
-    .eq("teacher_user_id", teacher.userId)
     .eq("subject", teacher.subject)
     .order("learning_date", { ascending: false })
     .order("learning_time", { ascending: false });

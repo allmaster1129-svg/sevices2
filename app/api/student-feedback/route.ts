@@ -72,7 +72,7 @@ async function requireFeedbackContext(
   const supabase = await createClient();
   const { data: teacher, error: teacherError } = await supabase
     .from("profiles")
-    .select("role")
+    .select("role, subject")
     .eq("user_id", userId)
     .maybeSingle();
 
@@ -85,6 +85,7 @@ async function requireFeedbackContext(
       status: 403,
     } as const;
   }
+  const teacherSubject = teacher.subject?.trim() || "수학";
 
   const [
     { data: lesson, error: lessonError },
@@ -94,7 +95,7 @@ async function requireFeedbackContext(
       .from("lesson_settings")
       .select("id, teacher_user_id, grade, class_number, subject, questions")
       .eq("id", lessonId)
-      .eq("teacher_user_id", userId)
+      .eq("subject", teacherSubject)
       .maybeSingle(),
     supabase
       .from("profiles")

@@ -69,7 +69,6 @@ async function getManagedClasses(
   const { data, error } = await teacher.supabase
     .from("lesson_settings")
     .select("grade, class_number")
-    .eq("teacher_user_id", teacher.userId)
     .eq("subject", teacher.subject)
     .order("grade")
     .order("class_number");

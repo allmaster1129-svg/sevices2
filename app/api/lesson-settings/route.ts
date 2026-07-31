@@ -127,7 +127,6 @@ export async function GET() {
     .select(
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
     )
-    .eq("teacher_user_id", teacher.userId)
     .eq("subject", teacher.subject)
     .order("learning_date", { ascending: false })
     .order("learning_time", { ascending: false })
@@ -161,20 +160,42 @@ export async function POST(request: Request) {
     );
   }
 
+  const { data: existingLesson, error: existingLessonError } =
+    await teacher.supabase
+      .from("lesson_settings")
+      .select("id")
+      .eq("grade", lessonInput.grade)
+      .eq("class_number", lessonInput.class_number)
+      .eq("learning_date", lessonInput.learning_date)
+      .eq("learning_time", lessonInput.learning_time)
+      .eq("subject", teacher.subject)
+      .limit(1)
+      .maybeSingle();
+
+  if (existingLessonError) {
+    return NextResponse.json(
+      { error: readableSupabaseError(existingLessonError.message) },
+      { status: 500 },
+    );
+  }
+  if (existingLesson) {
+    return NextResponse.json(
+      {
+        error:
+          "같은 과목·학급·날짜·교시에 이미 수업이 있습니다. 지난 수업 관리에서 기존 수업을 수정해 주세요.",
+      },
+      { status: 409 },
+    );
+  }
+
   const { data, error } = await teacher.supabase
     .from("lesson_settings")
-    .upsert(
-      {
-        teacher_user_id: teacher.userId,
-        ...lessonInput,
-        subject: teacher.subject,
-        updated_at: new Date().toISOString(),
-      },
-      {
-        onConflict:
-          "teacher_user_id,grade,class_number,learning_date,learning_time,subject",
-      },
-    )
+    .insert({
+      teacher_user_id: teacher.userId,
+      ...lessonInput,
+      subject: teacher.subject,
+      updated_at: new Date().toISOString(),
+    })
     .select(
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
     )
@@ -224,7 +245,6 @@ export async function PATCH(request: Request) {
       updated_at: new Date().toISOString(),
     })
     .eq("id", body.lessonId)
-    .eq("teacher_user_id", teacher.userId)
     .eq("subject", teacher.subject)
     .select(
       "id, grade, class_number, learning_date, learning_time, subject, question_count, questions, created_at",
@@ -254,4 +274,45 @@ export async function PATCH(request: Request) {
   }
 
   return NextResponse.json({ lesson: data });
+}
+
+export async function DELETE(request: Request) {
+  const teacher = await requireTeacher();
+  if ("error" in teacher) {
+    return NextResponse.json(
+      { error: teacher.error },
+      { status: teacher.status },
+    );
+  }
+
+  const lessonId = new URL(request.url).searchParams.get("lessonId")?.trim();
+  if (!lessonId) {
+    return NextResponse.json(
+      { error: "삭제할 수업을 선택해 주세요." },
+      { status: 400 },
+    );
+  }
+
+  const { data, error } = await teacher.supabase
+    .from("lesson_settings")
+    .delete()
+    .eq("id", lessonId)
+    .eq("subject", teacher.subject)
+    .select("id")
+    .maybeSingle();
+
+  if (error) {
+    return NextResponse.json(
+      { error: readableSupabaseError(error.message) },
+      { status: 500 },
+    );
+  }
+  if (!data) {
+    return NextResponse.json(
+      { error: "현재 과목에서 삭제할 수업을 찾지 못했습니다." },
+      { status: 404 },
+    );
+  }
+
+  return NextResponse.json({ deletedLessonId: data.id });
 }

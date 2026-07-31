@@ -1676,9 +1676,14 @@ label,
   grid-column: 1 / 3 !important;
 }
 
-.saved-lessons > div > button {
+.saved-lesson-actions {
   grid-column: 3;
   grid-row: 1 / 3;
+  display: flex;
+  gap: 6px;
+}
+
+.saved-lesson-actions > button {
   min-height: 34px;
   padding: 7px 10px;
   border: 1px solid #ffffff55;
@@ -1690,9 +1695,24 @@ label,
   cursor: pointer;
 }
 
-.saved-lessons > div > button:hover {
+.saved-lesson-actions > button:hover {
   background: #fff;
   color: #171a20;
+}
+
+.saved-lesson-actions > button.delete {
+  border-color: #ffb4b4;
+  color: #ffd1d1;
+}
+
+.saved-lesson-actions > button.delete:hover {
+  background: #fff0f0;
+  color: #a12b2b;
+}
+
+.saved-lesson-actions > button:disabled {
+  cursor: wait;
+  opacity: 0.55;
 }
 
 @media (max-width: 800px) {

@@ -67,6 +67,7 @@ export default function TeacherLessonSettings({
   const [editingLessonId, setEditingLessonId] = useState("");
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
+  const [deletingLessonId, setDeletingLessonId] = useState("");
   const [uploadingQuestion, setUploadingQuestion] = useState<number | null>(
     null,
   );
@@ -302,6 +303,44 @@ export default function TeacherLessonSettings({
       );
     } finally {
       setSaving(false);
+    }
+  }
+
+  async function deleteLesson(lesson: SavedLesson) {
+    const confirmed = window.confirm(
+      `${lesson.grade}학년 ${lesson.class_number}반 · ${lesson.learning_date} ${formatLessonPeriod(lesson.learning_time)} 수업을 삭제할까요?\n\n학생 응답, 매칭 결과, 활동 후 결과와 피드백도 함께 삭제됩니다.`,
+    );
+    if (!confirmed) return;
+
+    setDeletingLessonId(lesson.id);
+    setMessage("");
+    setError("");
+    try {
+      const response = await fetch(
+        `/api/lesson-settings?lessonId=${encodeURIComponent(lesson.id)}`,
+        { method: "DELETE" },
+      );
+      const result = (await response.json()) as {
+        deletedLessonId?: string;
+        error?: string;
+      };
+      if (!response.ok || result.deletedLessonId !== lesson.id) {
+        throw new Error(result.error ?? "수업을 삭제하지 못했습니다.");
+      }
+
+      setLessons((current) =>
+        current.filter((savedLesson) => savedLesson.id !== lesson.id),
+      );
+      if (editingLessonId === lesson.id) resetForm();
+      setMessage("수업과 연결된 활동 자료를 삭제했습니다.");
+    } catch (reason) {
+      setError(
+        reason instanceof Error
+          ? reason.message
+          : "수업을 삭제하는 중 오류가 발생했습니다.",
+      );
+    } finally {
+      setDeletingLessonId("");
     }
   }
 
@@ -595,12 +634,23 @@ export default function TeacherLessonSettings({
                     {lesson.learning_date} {formatLessonPeriod(lesson.learning_time)}
                   </span>
                   <small>{lesson.question_count}개 문항</small>
-                  <button
-                    type="button"
-                    onClick={() => editLesson(lesson)}
-                  >
-                    {editingLessonId === lesson.id ? "수정 중" : "수정"}
-                  </button>
+                  <div className="saved-lesson-actions">
+                    <button
+                      type="button"
+                      onClick={() => editLesson(lesson)}
+                      disabled={Boolean(deletingLessonId)}
+                    >
+                      {editingLessonId === lesson.id ? "수정 중" : "수정"}
+                    </button>
+                    <button
+                      type="button"
+                      className="delete"
+                      onClick={() => void deleteLesson(lesson)}
+                      disabled={Boolean(deletingLessonId)}
+                    >
+                      {deletingLessonId === lesson.id ? "삭제 중" : "삭제"}
+                    </button>
+                  </div>
                 </div>
               ))
             ) : (

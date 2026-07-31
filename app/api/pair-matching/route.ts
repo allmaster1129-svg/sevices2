@@ -121,7 +121,6 @@ export async function GET(request: Request) {
       "id, grade, class_number, learning_date, learning_time, subject, question_count",
     )
     .eq("id", lessonId)
-    .eq("teacher_user_id", teacher.userId)
     .eq("subject", teacher.subject)
     .maybeSingle();
 
@@ -273,7 +272,6 @@ export async function POST(request: Request) {
       "id, grade, class_number, learning_date, learning_time, subject, question_count",
     )
     .eq("id", body.lessonId)
-    .eq("teacher_user_id", teacher.userId)
     .eq("subject", teacher.subject)
     .maybeSingle();
 
