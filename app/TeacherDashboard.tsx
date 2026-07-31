@@ -258,6 +258,15 @@ export default function TeacherDashboard() {
   const needsHelpCount = selectedResponses.filter((response) =>
     Object.values(response.answers ?? {}).includes("unsolved"),
   ).length;
+  const afterNeedsHelpCount = comparableResults.filter((result) =>
+    (selectedLesson?.questions ?? []).some((question) => {
+      const key = String(question.number);
+      return (
+        result.before.answers?.[key] !== "solved" &&
+        result.after.answers?.[key] === "unsolved"
+      );
+    }),
+  ).length;
   const difficultQuestions = useMemo(
     () =>
       (selectedLesson?.questions ?? [])
@@ -544,7 +553,17 @@ export default function TeacherDashboard() {
         </article>
         <article className="panel">
           <span>도움이 필요해요</span>
-          <b>{needsHelpCount}명</b>
+          <div className="dashboard-help-comparison">
+            <span>
+              <small>활동 전</small>
+              <b>{needsHelpCount}명</b>
+            </span>
+            <em aria-hidden="true">→</em>
+            <span>
+              <small>활동 후</small>
+              <b>{afterNeedsHelpCount}명</b>
+            </span>
+          </div>
           <small>미해결 문항이 있는 학생</small>
           <i className="coral">!</i>
         </article>
@@ -785,7 +804,7 @@ export default function TeacherDashboard() {
           <section className="panel dashboard-difficult-card">
             <div className="panel-head">
               <div>
-                <h2>활동 전 어려운 문제 TOP 3</h2>
+                <h2>활동 전 어려운 문항 TOP3</h2>
                 <p>첫 응답에서 미해결이 많은 문항입니다.</p>
               </div>
             </div>
@@ -804,6 +823,7 @@ export default function TeacherDashboard() {
                     </div>
                   </div>
                   <span>
+                    {question.count}명 ·{" "}
                     {Math.round((question.count / respondedCount) * 100)}%
                   </span>
                 </div>
@@ -813,15 +833,18 @@ export default function TeacherDashboard() {
                 아직 제출된 설문이 없어요.
               </div>
             )}
+            <div className="dashboard-response-summary">
+              <span>활동 전 설문</span>
+              <b>{respondedCount}명 응답</b>
+            </div>
           </section>
 
           <section className="panel dashboard-difficult-card dashboard-after-difficult-card">
             <div className="panel-head">
               <div>
-                <h2>활동 후 미해결 문제 TOP 3</h2>
+                <h2>활동 후 미해결 문항 TOP3</h2>
                 <p>배움짝 활동 후에도 미해결 응답이 많은 문항입니다.</p>
               </div>
-              <span className="trend">{comparableResults.length}명 응답</span>
             </div>
             {!comparableResults.length ? (
               <div className="dashboard-card-empty">
@@ -855,6 +878,10 @@ export default function TeacherDashboard() {
                 </div>
               ))
             )}
+            <div className="dashboard-response-summary">
+              <span>배움짝 활동 후</span>
+              <b>{comparableResults.length}명 응답</b>
+            </div>
           </section>
         </aside>
       </div>

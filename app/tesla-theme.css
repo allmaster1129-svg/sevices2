@@ -1841,6 +1841,38 @@ label,
   font-size: 15px;
 }
 
+.teacher-dashboard-page .dashboard-help-comparison {
+  display: flex;
+  align-items: flex-end;
+  gap: 9px;
+  margin: 10px 0 5px;
+}
+
+.teacher-dashboard-page .dashboard-help-comparison > span {
+  display: grid;
+  gap: 1px;
+}
+
+.teacher-dashboard-page .dashboard-help-comparison small {
+  color: #5b6169;
+  font-size: 11px;
+  font-weight: 600;
+}
+
+.teacher-dashboard-page .dashboard-help-comparison b {
+  color: #111318;
+  font-size: 25px;
+  line-height: 1.1;
+}
+
+.teacher-dashboard-page .dashboard-help-comparison em {
+  padding-bottom: 2px;
+  color: #a1493b;
+  font-size: 18px;
+  font-style: normal;
+  font-weight: 700;
+}
+
 .teacher-dashboard-page .panel {
   color: #171a20;
 }
@@ -2359,17 +2391,7 @@ label,
   gap: 17px;
 }
 
-.teacher-dashboard-page .dashboard-after-difficult-card .panel-head {
-  align-items: flex-start;
-}
-
-.teacher-dashboard-page .dashboard-after-difficult-card .trend {
-  white-space: nowrap;
-}
-
-.teacher-dashboard-page
-  .dashboard-after-difficult-card
-  .dashboard-difficult-row {
+.teacher-dashboard-page .dashboard-difficult-row {
   grid-template-columns: 30px minmax(0, 1fr) 82px;
 }
 
@@ -2384,6 +2406,25 @@ label,
   color: #8a3427;
   font-size: 14px;
   font-weight: 700;
+}
+
+.teacher-dashboard-page .dashboard-response-summary {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 20px;
+  padding-top: 13px;
+  border-top: 1px solid #d7d9dc;
+  color: #4a5057;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.teacher-dashboard-page .dashboard-response-summary b {
+  color: #174f3d;
+  font-size: 14px;
+  white-space: nowrap;
 }
 
 .teacher-dashboard-page .dashboard-card-empty {
