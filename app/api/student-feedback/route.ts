@@ -1,4 +1,4 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
+﻿import { auth, authAdminClient } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 import { normalizeSubjects } from "@/app/subjects";
 import { createClient } from "@/utils/supabase/server";
@@ -184,9 +184,9 @@ export async function POST(request: Request) {
     return NextResponse.json({ feedback: data });
   }
 
-  const client = await clerkClient();
-  const clerkUser = await client.users.getUser(context.userId);
-  const storedApiKey = clerkUser.privateMetadata.geminiApiKey;
+  const client = await authAdminClient();
+  const authUser = await client.users.getUser(context.userId);
+  const storedApiKey = authUser.privateMetadata.geminiApiKey;
   const apiKey =
     typeof storedApiKey === "string" ? storedApiKey.trim() : "";
   if (!apiKey) {

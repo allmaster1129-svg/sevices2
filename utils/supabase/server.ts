@@ -1,5 +1,6 @@
-import { auth } from "@clerk/nextjs/server";
 import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createServerClient } from "@supabase/ssr";
+import { cookies } from "next/headers";
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
 const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY;
@@ -24,9 +25,13 @@ export async function createClient() {
     });
   }
 
-  const { getToken } = await auth();
-
-  return createSupabaseClient(supabaseUrl, supabaseKey, {
-    accessToken: () => getToken(),
+  const cookieStore = await cookies();
+  return createServerClient(supabaseUrl, supabaseKey, {
+    cookies: {
+      getAll: () => cookieStore.getAll(),
+      setAll: () => {
+        // Session refresh is handled by proxy.ts.
+      },
+    },
   });
 }

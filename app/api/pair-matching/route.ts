@@ -1,4 +1,4 @@
-import { auth } from "@clerk/nextjs/server";
+﻿import { auth } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import { normalizeSubjects } from "@/app/subjects";
@@ -39,7 +39,7 @@ function readableSupabaseError(message: string) {
     normalized.includes("invalid jwt") ||
     normalized.includes("jwk")
   ) {
-    return "Supabase 인증 연결이 아직 완료되지 않았습니다. Supabase Third-Party Auth에 Clerk를 등록하거나 서버에 SUPABASE_SECRET_KEY를 설정해 주세요.";
+    return "Supabase 데이터 연결이 완료되지 않았습니다. 서버의 SUPABASE_SECRET_KEY 또는 RLS 정책을 확인해 주세요.";
   }
   return message;
 }

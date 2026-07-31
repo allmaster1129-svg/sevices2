@@ -1,8 +1,7 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useState } from "react";
-import { useUser } from "@clerk/nextjs";
-import type { AccountProfile } from "./ClerkDatabaseSetup";
+import type { AccountProfile } from "./SupabaseAuthSetup";
 import { DEFAULT_TEACHER_SUBJECT } from "./subjects";
 import SubjectMultiSelect from "./SubjectMultiSelect";
 
@@ -30,7 +29,6 @@ export default function TeacherProfileEditor({
   onClose: () => void;
   onSaved: (profile: AccountProfile) => void;
 }) {
-  const { user } = useUser();
   const [subject, setSubject] = useState(
     profile.subject ?? DEFAULT_TEACHER_SUBJECT,
   );
@@ -83,21 +81,13 @@ export default function TeacherProfileEditor({
   }, []);
 
   async function saveProfile() {
-    if (!user || !subject || !subjects.length || !subjects.includes(subject)) {
+    if (!subject || !subjects.length || !subjects.includes(subject)) {
       return;
     }
     setSaving(true);
     setError("");
 
     try {
-      await user.update({
-        unsafeMetadata: {
-          ...user.unsafeMetadata,
-          subject,
-          subjects,
-        },
-      });
-
       const response = await fetch("/api/profile", {
         method: "POST",
         headers: { "Content-Type": "application/json" },

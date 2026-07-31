@@ -1,10 +1,10 @@
-"use client";
+﻿"use client";
 
 import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { Show, SignInButton, SignUpButton, UserButton, useClerk, useUser } from "@clerk/nextjs";
-import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
-import type { AccountProfile } from "./ClerkDatabaseSetup";
+import { createClient } from "@/utils/supabase/client";
+import SupabaseAuthSetup from "./SupabaseAuthSetup";
+import type { AccountProfile } from "./SupabaseAuthSetup";
 import TeacherLessonSettings from "./TeacherLessonSettings";
 import StudentLessonDashboard from "./StudentLessonDashboard";
 import TeacherClassResults from "./TeacherClassResults";
@@ -44,8 +44,7 @@ type Screen =
   | "guide";
 
 export default function Home() {
-  const { signOut } = useClerk();
-  const { user } = useUser();
+  const supabase = useMemo(() => createClient(), []);
   const [screen, setScreen] = useState<Screen>("login");
   const [profile, setProfile] = useState<AccountProfile | null>(null);
   const [signingOut, setSigningOut] = useState(false);
@@ -58,7 +57,7 @@ export default function Home() {
 
   if (screen === "login" || !profile) {
     return (
-      <ClerkDatabaseSetup
+      <SupabaseAuthSetup
         onComplete={(savedProfile) => {
           setProfile(savedProfile);
           setScreen(
@@ -77,7 +76,7 @@ export default function Home() {
   const handleSignOut = async () => {
     setSigningOut(true);
     try {
-      await signOut();
+      await supabase.auth.signOut();
       setProfile(null);
       setScreen("login");
     } finally {
@@ -86,7 +85,6 @@ export default function Home() {
   };
   const handleSubjectChange = async (nextSubject: string) => {
     if (
-      !user ||
       nextSubject === profile.subject ||
       !profile.subjects.includes(nextSubject)
     ) return;
@@ -94,9 +92,8 @@ export default function Home() {
     setSwitchingSubject(true);
     setSubjectSwitchError("");
     try {
-      await user.update({
-        unsafeMetadata: {
-          ...user.unsafeMetadata,
+      await supabase.auth.updateUser({
+        data: {
           subject: nextSubject,
           subjects: profile.subjects,
         },
@@ -287,28 +284,6 @@ export default function Home() {
       )}
     </div>
   );
-}
-
-function ClerkSetup({ onComplete }: { onComplete: (role: "student" | "admin") => void }) {
-  const { isLoaded, isSignedIn, user } = useUser();
-  const saved = (user?.unsafeMetadata ?? {}) as { role?: "student" | "admin"; classCode?: string; profileName?: string };
-  const [role, setRole] = useState<"student" | "admin">(saved.role ?? "student");
-  const [name, setName] = useState(saved.profileName ?? user?.firstName ?? "");
-  const [classCode, setClassCode] = useState(saved.classCode ?? "");
-  const [saving, setSaving] = useState(false);
-
-  useEffect(() => {
-    if (!user) return;
-    const profile = user.unsafeMetadata as { role?: "student" | "admin"; classCode?: string; profileName?: string };
-    if (profile.role) setRole(profile.role);
-    setName(profile.profileName ?? user.firstName ?? "");
-    setClassCode(profile.classCode ?? "");
-  }, [user]);
-
-  if (!isLoaded) return <main className="login-page"><div className="login-card auth-loading"><p>Clerk 인증을 확인하고 있어요...</p></div></main>;
-  if (!isSignedIn || !user) return <main className="login-page"><div className="login-mark"><span>✦</span> 배움짝</div><div className="login-card"><div className="login-intro"><p className="overline">CLERK AUTHENTICATION</p><h1>안전하게 로그인하고,<br /><em>나만의 배움짝</em>을 시작해요.</h1><p>학생과 교사 계정은 Clerk로 안전하게 인증됩니다.<br />인증 후 학급 정보를 입력하면 맞춤 화면이 열려요.</p><div className="login-orb"><i /><i /><i /></div></div><div className="login-form"><h2>배움짝 로그인</h2><p className="muted">먼저 계정을 인증해 주세요.</p><div className="clerk-login-stack"><SignInButton mode="modal"><button className="clerk-primary clerk-wide">Clerk로 로그인</button></SignInButton><SignUpButton mode="modal"><button className="clerk-secondary clerk-wide">처음이라면 회원가입</button></SignUpButton></div><p className="safe">🔒 Clerk가 계정과 비밀번호를 안전하게 관리해요.</p></div></div><p className="login-footer">인증이 끝나면 학생/교사와 학급 코드를 입력합니다.</p></main>;
-
-  return <main className="login-page"><div className="login-mark"><span>✦</span> 배움짝</div><div className="login-card profile-setup-card"><div className="login-intro"><p className="overline">PROFILE SETUP</p><h1>인증이 완료됐어요.<br /><em>내 배움짝</em> 정보를 알려주세요.</h1><p>입력한 정보는 현재 Clerk 계정에 저장되어<br />다음 로그인부터 바로 사용할 수 있어요.</p><div className="account-chip"><UserButton /><span>{user.primaryEmailAddress?.emailAddress}</span></div></div><div className="login-form"><h2>나에게 맞는 화면 설정</h2><p className="muted">학생 또는 교사 계정에 맞게 입력해 주세요.</p><div className="role-tabs"><button className={role === "student" ? "selected" : ""} onClick={() => setRole("student")}>학생</button><button className={role === "admin" ? "selected" : ""} onClick={() => setRole("admin")}>교사</button></div><label>이름<input value={name} onChange={(e) => setName(e.target.value)} placeholder="예: 박서연" /></label><label>{role === "student" ? "학급 코드" : "담당 학급 코드"}<input value={classCode} onChange={(e) => setClassCode(e.target.value)} placeholder="예: MATH-2-3" /></label><button className="login-button" disabled={saving || !name.trim() || !classCode.trim()} onClick={async () => { setSaving(true); await user.update({ firstName: name.trim(), unsafeMetadata: { ...user.unsafeMetadata, role, profileName: name.trim(), classCode: classCode.trim() } }); onComplete(role); }}>{saving ? "저장 중..." : role === "student" ? "내 배움짝 확인하기" : "학급 대시보드 열기"} <span>→</span></button><p className="safe">✓ Clerk 계정에 안전하게 저장됩니다.</p></div></div></main>;
 }
 
 function Login({ role, setRole, onLogin }: { role: "student" | "admin"; setRole: (r: "student" | "admin") => void; onLogin: () => void }) {

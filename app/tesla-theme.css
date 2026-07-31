@@ -2931,6 +2931,61 @@ label,
   white-space: nowrap;
 }
 
+.supabase-auth-form {
+  align-content: center;
+}
+
+.supabase-auth-form > label {
+  display: grid;
+  gap: 8px;
+  margin-top: 14px;
+  color: #20242c;
+  font-size: 14px;
+  font-weight: 700;
+}
+
+.supabase-auth-form > label input {
+  width: 100%;
+  min-height: 54px;
+  padding: 0 15px;
+  border: 1px solid #b8bec8;
+  border-radius: 6px;
+  background: #fff;
+  color: #111827;
+  font-size: 16px;
+}
+
+.supabase-auth-form > label input:focus {
+  border-color: #315ed8;
+  outline: 3px solid rgba(49, 94, 216, 0.14);
+}
+
+.supabase-auth-form .clerk-wide {
+  margin-top: 12px;
+}
+
+.auth-success-message {
+  margin: 12px 0 0;
+  padding: 11px 13px;
+  border: 1px solid #80c7a5;
+  border-radius: 6px;
+  background: #eaf8f0;
+  color: #14532d;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.auth-signout-link {
+  margin-top: 10px;
+  border: 0;
+  background: transparent;
+  color: #315ed8;
+  cursor: pointer;
+  font-size: 13px;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
 @media (max-width: 560px) {
   .account-shortcut-buttons {
     grid-template-columns: repeat(2, minmax(0, 1fr));

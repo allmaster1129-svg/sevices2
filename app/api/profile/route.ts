@@ -1,4 +1,4 @@
-import { auth, currentUser } from "@clerk/nextjs/server";
+﻿import { auth, currentUser } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 import {
@@ -17,7 +17,7 @@ type ProfileInput = {
   subjects?: string[] | null;
 };
 
-type ClerkProfileMetadata = {
+type AuthProfileMetadata = {
   role?: "student" | "admin";
   profileName?: string;
   grade?: number | null;
@@ -42,12 +42,12 @@ function isSupabaseKeyConfigurationError(message: string) {
 }
 
 function syncWarning() {
-  return "Supabase의 Clerk 인증 연결이 아직 완료되지 않아 계정 정보는 Clerk에 우선 저장했습니다. 관리자 화면은 정상적으로 사용할 수 있으며, Supabase Third-Party Auth 또는 서버 Secret Key를 설정하면 DB 동기화가 완료됩니다.";
+  return "Supabase 데이터 연결을 확인하지 못했습니다. 서버 Secret Key 또는 RLS 정책을 확인해 주세요.";
 }
 
-async function getClerkProfileFallback() {
+async function getAuthProfileFallback() {
   const user = await currentUser();
-  const metadata = user?.unsafeMetadata as ClerkProfileMetadata | undefined;
+  const metadata = user?.unsafeMetadata as AuthProfileMetadata | undefined;
   if (!metadata?.role) return null;
   const subjects = normalizeSubjects(metadata.subjects);
   const activeSubject = isTeacherSubject(metadata.subject)
@@ -83,7 +83,7 @@ export async function GET() {
 
   if (error) {
     if (isSupabaseKeyConfigurationError(error.message)) {
-      const fallback = await getClerkProfileFallback();
+      const fallback = await getAuthProfileFallback();
       if (fallback) {
         return NextResponse.json({
           profile: fallback,

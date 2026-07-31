@@ -1,4 +1,4 @@
-import { auth, clerkClient } from "@clerk/nextjs/server";
+﻿import { auth, authAdminClient } from "@/utils/auth/server";
 import { NextResponse } from "next/server";
 import { createClient } from "@/utils/supabase/server";
 
@@ -29,7 +29,7 @@ async function requireTeacher() {
 }
 
 async function getStoredKey(userId: string) {
-  const client = await clerkClient();
+  const client = await authAdminClient();
   const user = await client.users.getUser(userId);
   const value = user.privateMetadata.geminiApiKey;
   return typeof value === "string" ? value.trim() : "";
@@ -81,7 +81,7 @@ export async function PUT(request: Request) {
   }
 
   try {
-    const client = await clerkClient();
+    const client = await authAdminClient();
     await client.users.updateUserMetadata(teacher.userId, {
       privateMetadata: { geminiApiKey: apiKey },
     });
@@ -107,7 +107,7 @@ export async function DELETE() {
   }
 
   try {
-    const client = await clerkClient();
+    const client = await authAdminClient();
     await client.users.updateUserMetadata(teacher.userId, {
       privateMetadata: { geminiApiKey: null },
     });
