@@ -65,6 +65,7 @@ export default function SupabaseAuthSetup({
   const [password, setPassword] = useState("");
   const [passwordConfirm, setPasswordConfirm] = useState("");
   const [authBusy, setAuthBusy] = useState(false);
+  const [resendBusy, setResendBusy] = useState(false);
   const [authError, setAuthError] = useState("");
   const [authMessage, setAuthMessage] = useState("");
   const [role, setRole] = useState<AccountRole>("student");
@@ -168,6 +169,9 @@ export default function SupabaseAuthSetup({
         const { data, error } = await supabase.auth.signUp({
           email: identifier,
           password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
         });
         if (error) throw error;
         if (!data.session) {
@@ -187,6 +191,35 @@ export default function SupabaseAuthSetup({
       );
     } finally {
       setAuthBusy(false);
+    }
+  }
+
+  async function resendConfirmation() {
+    const identifier = email.trim().toLowerCase();
+    if (!identifier || resendBusy) return;
+    setResendBusy(true);
+    setAuthError("");
+    setAuthMessage("");
+    try {
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: identifier,
+        options: {
+          emailRedirectTo: window.location.origin,
+        },
+      });
+      if (error) throw error;
+      setAuthMessage(
+        "운영 사이트 주소로 새 인증 메일을 보냈습니다. 가장 최근 메일을 확인해 주세요.",
+      );
+    } catch (reason) {
+      setAuthError(
+        reason instanceof Error
+          ? reason.message
+          : "인증 메일을 다시 보내지 못했습니다.",
+      );
+    } finally {
+      setResendBusy(false);
     }
   }
 
@@ -321,6 +354,16 @@ export default function SupabaseAuthSetup({
             )}
             {authError && <p className="profile-save-error">{authError}</p>}
             {authMessage && <p className="auth-success-message">{authMessage}</p>}
+            {mode === "login" && authMessage && (
+              <button
+                type="button"
+                className="auth-resend-link"
+                disabled={resendBusy || !email.trim()}
+                onClick={resendConfirmation}
+              >
+                {resendBusy ? "다시 보내는 중..." : "인증 메일 다시 보내기"}
+              </button>
+            )}
             <button
               type="button"
               className="clerk-primary clerk-wide"
