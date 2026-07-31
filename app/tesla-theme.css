@@ -1417,6 +1417,31 @@ label,
 .student-edit-actions {
   display: flex;
   gap: 8px;
+  align-items: stretch;
+}
+
+.student-edit-actions button {
+  min-width: 112px;
+  min-height: 50px;
+  padding-inline: 16px;
+  white-space: nowrap;
+}
+
+.student-edit-actions .student-edit-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  border-color: #adb5bf !important;
+  background: #fff !important;
+  color: #30353b !important;
+  box-shadow: 0 2px 8px #171a2012;
+}
+
+.student-edit-actions .student-edit-cancel:hover:not(:disabled) {
+  border-color: #171a20 !important;
+  background: #f4f4f4 !important;
+  color: #171a20 !important;
 }
 
 .student-subject-editor {

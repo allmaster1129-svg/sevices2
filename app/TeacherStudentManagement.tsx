@@ -358,11 +358,12 @@ export default function TeacherStudentManagement() {
                           <div className="student-edit-actions">
                             <button
                               type="button"
-                              className="secondary"
+                              className="secondary student-edit-cancel"
                               disabled={saving}
                               onClick={cancelEdit}
                             >
-                              취소
+                              <span aria-hidden="true">↩</span>
+                              변경 취소
                             </button>
                             <button
                               type="button"
