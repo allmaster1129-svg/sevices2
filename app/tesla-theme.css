@@ -2204,6 +2204,31 @@ label,
   min-height: 42px;
 }
 
+.teacher-name-field {
+  display: grid;
+  gap: 8px;
+  color: #2f3540;
+  font-size: 13px;
+  font-weight: 800;
+}
+
+.teacher-name-field input {
+  width: 100%;
+  min-height: 48px;
+  padding: 10px 13px;
+  border: 1px solid #bfc5ce;
+  border-radius: 4px;
+  background: #fff;
+  color: #171a20;
+  font-size: 16px;
+  font-weight: 700;
+}
+
+.teacher-name-field input:focus {
+  border-color: #174ea6;
+  outline: 2px solid rgba(23, 78, 166, 0.14);
+}
+
 .gemini-key-status {
   display: flex;
   align-items: center;
