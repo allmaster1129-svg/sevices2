@@ -15,6 +15,12 @@ import {
 import SubjectMultiSelect from "./SubjectMultiSelect";
 
 export type AccountRole = "student" | "admin";
+export type DemoPersonaId =
+  | "teacher"
+  | "student-1"
+  | "student-2"
+  | "student-3"
+  | "student-4";
 
 export type AccountProfile = {
   role: AccountRole;
@@ -73,8 +79,10 @@ function normalizeProfile(
 
 export default function ClerkDatabaseSetup({
   onComplete,
+  onDemoLogin,
 }: {
   onComplete: (profile: AccountProfile) => void;
+  onDemoLogin: (persona: DemoPersonaId) => void;
 }) {
   const { isLoaded, isSignedIn, user } = useUser();
   const [role, setRole] = useState<AccountRole>("student");
@@ -305,6 +313,32 @@ export default function ClerkDatabaseSetup({
             <p className="safe">🔒 계정 정보는 Clerk가 관리합니다.</p>
           </div>
         </div>
+        <section className="demo-login-panel" aria-labelledby="demo-login-title">
+          <div>
+            <b id="demo-login-title">대시보드 바로 보기</b>
+            <span>실제 계정과 데이터는 변경되지 않는 체험 화면입니다.</span>
+          </div>
+          <div className="demo-login-buttons">
+            {[
+              { id: "teacher", role: "교사", name: "정태형" },
+              { id: "student-1", role: "학생1", name: "홍길동" },
+              { id: "student-2", role: "학생2", name: "김철수" },
+              { id: "student-3", role: "학생3", name: "고길동" },
+              { id: "student-4", role: "학생4", name: "무궁화" },
+            ].map((persona) => (
+              <button
+                type="button"
+                key={persona.id}
+                onClick={() =>
+                  onDemoLogin(persona.id as DemoPersonaId)
+                }
+              >
+                <b>{persona.role}</b>
+                <span>{persona.name}</span>
+              </button>
+            ))}
+          </div>
+        </section>
       </main>
     );
   }

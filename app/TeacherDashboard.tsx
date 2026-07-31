@@ -68,6 +68,15 @@ type StudentFeedback = {
   updated_at: string;
 };
 
+export type TeacherDashboardDemoData = {
+  lessons: Lesson[];
+  students: Student[];
+  responses: LessonResponse[];
+  pairings: Pairing[];
+  postActivityResponses: PostActivityResponse[];
+  feedbacks: StudentFeedback[];
+};
+
 function formatDate(value: string) {
   return new Intl.DateTimeFormat("ko-KR", {
     year: "numeric",
@@ -77,7 +86,11 @@ function formatDate(value: string) {
   }).format(new Date(`${value}T00:00:00`));
 }
 
-export default function TeacherDashboard() {
+export default function TeacherDashboard({
+  demoData,
+}: {
+  demoData?: TeacherDashboardDemoData;
+}) {
   const [lessons, setLessons] = useState<Lesson[]>([]);
   const [students, setStudents] = useState<Student[]>([]);
   const [responses, setResponses] = useState<LessonResponse[]>([]);
@@ -103,6 +116,19 @@ export default function TeacherDashboard() {
   );
 
   useEffect(() => {
+    if (demoData) {
+      setLessons(demoData.lessons);
+      setStudents(demoData.students);
+      setResponses(demoData.responses);
+      setPairings(demoData.pairings);
+      setPostActivityResponses(demoData.postActivityResponses);
+      setFeedbacks(demoData.feedbacks);
+      setLessonId(demoData.lessons[0]?.id ?? "");
+      setError("");
+      setLoading(false);
+      return;
+    }
+
     let active = true;
 
     const loadDashboard = async () => {
@@ -159,7 +185,7 @@ export default function TeacherDashboard() {
       window.clearInterval(timer);
       window.removeEventListener("focus", loadDashboard);
     };
-  }, []);
+  }, [demoData]);
 
   const selectedLesson =
     lessons.find((lesson) => lesson.id === lessonId) ?? lessons[0] ?? null;

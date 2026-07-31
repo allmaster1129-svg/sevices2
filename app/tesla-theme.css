@@ -2866,3 +2866,107 @@ label,
     width: 100%;
   }
 }
+
+/* Read-only dashboard shortcuts shown beneath the Clerk login card. */
+.demo-login-panel {
+  width: min(1040px, calc(100% - 32px));
+  margin: 18px auto 0;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(220px, 0.8fr) minmax(0, 2fr);
+  gap: 18px;
+  align-items: center;
+  border: 1px solid #cbd2dc;
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.96);
+  box-shadow: 0 10px 30px rgba(20, 28, 40, 0.09);
+}
+
+.demo-login-panel > div:first-child {
+  display: grid;
+  gap: 5px;
+}
+
+.demo-login-panel > div:first-child b {
+  color: #111827;
+  font-size: 17px;
+}
+
+.demo-login-panel > div:first-child span {
+  color: #4b5563;
+  font-size: 13px;
+  line-height: 1.45;
+}
+
+.demo-login-buttons {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.demo-login-buttons button {
+  min-height: 58px;
+  padding: 9px 8px;
+  display: grid;
+  place-content: center;
+  gap: 3px;
+  border: 1px solid #aeb8c7;
+  border-radius: 9px;
+  background: #f7f9fc;
+  color: #172033;
+  cursor: pointer;
+  transition:
+    background 160ms ease,
+    border-color 160ms ease,
+    transform 160ms ease;
+}
+
+.demo-login-buttons button:first-child {
+  border-color: #294fc4;
+  background: #294fc4;
+  color: #fff;
+}
+
+.demo-login-buttons button:hover {
+  border-color: #294fc4;
+  background: #eaf0ff;
+  transform: translateY(-1px);
+}
+
+.demo-login-buttons button:first-child:hover {
+  background: #1f3fa0;
+}
+
+.demo-login-buttons button b {
+  font-size: 14px;
+}
+
+.demo-login-buttons button span {
+  font-size: 12px;
+  opacity: 0.82;
+}
+
+@media (max-width: 820px) {
+  .demo-login-panel {
+    grid-template-columns: 1fr;
+  }
+
+  .demo-login-buttons {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 520px) {
+  .demo-login-panel {
+    width: calc(100% - 20px);
+    padding: 14px;
+  }
+
+  .demo-login-buttons {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .demo-login-buttons button:first-child {
+    grid-column: 1 / -1;
+  }
+}
