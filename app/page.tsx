@@ -4,7 +4,7 @@ import { useEffect, useMemo, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
 import { Show, SignInButton, SignUpButton, UserButton, useClerk, useUser } from "@clerk/nextjs";
 import ClerkDatabaseSetup from "./ClerkDatabaseSetup";
-import type { AccountProfile, DemoPersonaId } from "./ClerkDatabaseSetup";
+import type { AccountProfile } from "./ClerkDatabaseSetup";
 import TeacherLessonSettings from "./TeacherLessonSettings";
 import StudentLessonDashboard from "./StudentLessonDashboard";
 import TeacherClassResults from "./TeacherClassResults";
@@ -17,11 +17,6 @@ import StudentProfileEditor from "./StudentProfileEditor";
 import TeacherProfileEditor from "./TeacherProfileEditor";
 import TeacherStudentManagement from "./TeacherStudentManagement";
 import StudentProgressDashboard from "./StudentProgressDashboard";
-import {
-  DEMO_TEACHER_DASHBOARD,
-  getDemoProfile,
-  getDemoStudentLessons,
-} from "./demo-data";
 import "./settings.module.css";
 import "./clerk.module.css";
 import "./notifications-guide.css";
@@ -57,29 +52,14 @@ export default function Home() {
   const [switchingSubject, setSwitchingSubject] = useState(false);
   const [subjectSwitchError, setSubjectSwitchError] = useState("");
   const [profileEditorOpen, setProfileEditorOpen] = useState(false);
-  const [demoPersona, setDemoPersona] = useState<DemoPersonaId | null>(null);
   const [answers, setAnswers] = useState<Record<number, "know" | "need">>({ 1: "know", 2: "know", 3: "know", 4: "need", 5: "know", 6: "need", 7: "know", 8: "know", 9: "need" });
   const done = Object.keys(answers).length;
   const score = useMemo(() => Math.round((Object.values(answers).filter((a) => a === "know").length / Math.max(done, 1)) * 100), [answers, done]);
-  const demoStudentLessons = useMemo(
-    () =>
-      demoPersona && demoPersona !== "teacher"
-        ? getDemoStudentLessons(demoPersona)
-        : undefined,
-    [demoPersona],
-  );
 
   if (screen === "login" || !profile) {
     return (
       <ClerkDatabaseSetup
-        onDemoLogin={(persona) => {
-          const demoProfile = getDemoProfile(persona);
-          setDemoPersona(persona);
-          setProfile(demoProfile);
-          setScreen(persona === "teacher" ? "admin" : "student-dashboard");
-        }}
         onComplete={(savedProfile) => {
-          setDemoPersona(null);
           setProfile(savedProfile);
           setScreen(
             savedProfile.role === "admin" ? "admin" : "student-dashboard",
@@ -95,12 +75,6 @@ export default function Home() {
     ? `${profile.subject ?? "교과목 미설정"} 교사`
     : `${profile.grade}학년 ${profile.classNumber}반 ${profile.studentNumber}번`;
   const handleSignOut = async () => {
-    if (demoPersona) {
-      setDemoPersona(null);
-      setProfile(null);
-      setScreen("login");
-      return;
-    }
     setSigningOut(true);
     try {
       await signOut();
@@ -112,7 +86,6 @@ export default function Home() {
   };
   const handleSubjectChange = async (nextSubject: string) => {
     if (
-      demoPersona ||
       !user ||
       nextSubject === profile.subject ||
       !profile.subjects.includes(nextSubject)
@@ -182,17 +155,7 @@ export default function Home() {
         </button>
         <div className="school-pill">{schoolLabel}<span>⌄</span></div>
         <div className="side-label">MENU</div>
-        {demoPersona ? (
-          <button
-            className="side-link active"
-            onClick={() =>
-              setScreen(isTeacher ? "admin" : "student-dashboard")
-            }
-          >
-            ◫
-            <span>{isTeacher ? "학급 대시보드" : "나의 학습 대시보드"}</span>
-          </button>
-        ) : isTeacher ? (
+        {isTeacher ? (
           <>
             <button className={screen === "admin" ? "side-link active" : "side-link"} onClick={() => setScreen("admin")}>▦ <span>학급 대시보드</span></button>
             <button className={screen === "matching" ? "side-link active" : "side-link"} onClick={() => setScreen("matching")}>♧ <span>짝 매칭 관리</span></button>
@@ -209,17 +172,15 @@ export default function Home() {
           </>
         )}
         <div className="sidebar-bottom">
-          {!demoPersona && (
-            <button
-              type="button"
-              className={screen === "guide" ? "help-box active" : "help-box"}
-              onClick={() => setScreen("guide")}
-            >
-              <b>도움이 필요하신가요?</b>
-              <span>사용 가이드 보기 →</span>
-            </button>
-          )}
-          {!demoPersona && isTeacher ? (
+          <button
+            type="button"
+            className={screen === "guide" ? "help-box active" : "help-box"}
+            onClick={() => setScreen("guide")}
+          >
+            <b>도움이 필요하신가요?</b>
+            <span>사용 가이드 보기 →</span>
+          </button>
+          {isTeacher ? (
             <button
               type="button"
               className="profile profile-button"
@@ -232,7 +193,7 @@ export default function Home() {
                 <small>{profile.subject ?? "교과목 설정"} · 변경</small>
               </span>
             </button>
-          ) : !demoPersona ? (
+          ) : (
             <button
               type="button"
               className="profile profile-button"
@@ -242,7 +203,7 @@ export default function Home() {
               <span className="mini-avatar">{profile.displayName.slice(0, 1)}</span>
               <span><b>{profile.displayName}</b><small>학급 정보 변경</small></span>
             </button>
-          ) : null}
+          )}
           <button
             type="button"
             className="logout-button"
@@ -250,11 +211,7 @@ export default function Home() {
             onClick={handleSignOut}
           >
             <span aria-hidden="true">↪</span>
-            {demoPersona
-              ? "체험 종료"
-              : signingOut
-                ? "로그아웃 중..."
-                : "로그아웃"}
+            {signingOut ? "로그아웃 중..." : "로그아웃"}
           </button>
         </div>
       </aside>
@@ -266,7 +223,7 @@ export default function Home() {
               <span>조회 과목</span>
               <select
                 value={profile.subject ?? profile.subjects[0]}
-                disabled={switchingSubject || Boolean(demoPersona)}
+                disabled={switchingSubject}
                 onChange={(event) => handleSubjectChange(event.target.value)}
               >
                 {profile.subjects.map((subject) => (
@@ -274,18 +231,12 @@ export default function Home() {
                 ))}
               </select>
             </label>
-            {!demoPersona && (
-              <NotificationCenter
-                key={`notifications-${profile.subject}`}
-                isTeacher={isTeacher}
-              />
-            )}
+            <NotificationCenter
+              key={`notifications-${profile.subject}`}
+              isTeacher={isTeacher}
+            />
             <span className="account-role-label">
-              {demoPersona
-                ? `체험 · ${isTeacher ? "교사" : "학생"}`
-                : isTeacher
-                  ? `${profile.subject ?? ""} 교사`
-                  : "학생"}
+              {isTeacher ? `${profile.subject ?? ""} 교사` : "학생"}
             </span>
           </div>
         </header>
@@ -293,18 +244,9 @@ export default function Home() {
           <p className="subject-switch-error">{subjectSwitchError}</p>
         )}
         {screen === "admin" ? (
-          <TeacherDashboard
-            key={`dashboard-${profile.subject}`}
-            demoData={
-              demoPersona === "teacher" ? DEMO_TEACHER_DASHBOARD : undefined
-            }
-          />
+          <TeacherDashboard key={`dashboard-${profile.subject}`} />
         ) : screen === "student-dashboard" ? (
-          <StudentProgressDashboard
-            key={`student-dashboard-${profile.subject}`}
-            profile={profile}
-            demoLessons={demoStudentLessons}
-          />
+          <StudentProgressDashboard key={`student-dashboard-${profile.subject}`} profile={profile} />
         ) : screen === "student" ? (
           <StudentLessonDashboard key={`student-${profile.subject}`} profile={profile} />
         ) : screen === "student-results" ? (

@@ -15,12 +15,15 @@ import {
 import SubjectMultiSelect from "./SubjectMultiSelect";
 
 export type AccountRole = "student" | "admin";
-export type DemoPersonaId =
-  | "teacher"
-  | "student-1"
-  | "student-2"
-  | "student-3"
-  | "student-4";
+
+const LOGIN_TARGET_KEY = "baeumjjak-login-target";
+const ACCOUNT_SHORTCUTS = [
+  { role: "교사", name: "정태형" },
+  { role: "학생1", name: "홍길동" },
+  { role: "학생2", name: "김철수" },
+  { role: "학생3", name: "고길동" },
+  { role: "학생4", name: "무궁화" },
+] as const;
 
 export type AccountProfile = {
   role: AccountRole;
@@ -79,10 +82,8 @@ function normalizeProfile(
 
 export default function ClerkDatabaseSetup({
   onComplete,
-  onDemoLogin,
 }: {
   onComplete: (profile: AccountProfile) => void;
-  onDemoLogin: (persona: DemoPersonaId) => void;
 }) {
   const { isLoaded, isSignedIn, user } = useUser();
   const [role, setRole] = useState<AccountRole>("student");
@@ -154,6 +155,14 @@ export default function ClerkDatabaseSetup({
               profile.studentNumber,
           ));
         if (profileIsComplete) {
+          const requestedName = sessionStorage.getItem(LOGIN_TARGET_KEY);
+          if (requestedName && requestedName !== profile.displayName) {
+            setSaveError(
+              `${requestedName} 계정을 선택했습니다. 현재 로그인된 ${profile.displayName} 계정 대신 선택한 계정으로 로그인해 주세요.`,
+            );
+            return;
+          }
+          sessionStorage.removeItem(LOGIN_TARGET_KEY);
           onComplete(profile);
         } else {
           setRole(profile.role);
@@ -300,45 +309,52 @@ export default function ClerkDatabaseSetup({
             <p className="muted">먼저 계정을 인증해 주세요.</p>
             <div className="clerk-login-stack">
               <SignInButton mode="modal">
-                <button className="clerk-primary clerk-wide">
+                <button
+                  className="clerk-primary clerk-wide"
+                  onClick={() => sessionStorage.removeItem(LOGIN_TARGET_KEY)}
+                >
                   Clerk로 로그인
                 </button>
               </SignInButton>
               <SignUpButton mode="modal">
-                <button className="clerk-secondary clerk-wide">
+                <button
+                  className="clerk-secondary clerk-wide"
+                  onClick={() => sessionStorage.removeItem(LOGIN_TARGET_KEY)}
+                >
                   처음이라면 회원가입
                 </button>
               </SignUpButton>
             </div>
+            <section
+              className="account-shortcut-panel"
+              aria-labelledby="account-shortcut-title"
+            >
+              <div className="account-shortcut-heading">
+                <b id="account-shortcut-title">등록 계정으로 로그인</b>
+                <span>계정을 선택한 뒤 Clerk 인증을 완료해 주세요.</span>
+              </div>
+              <div className="account-shortcut-buttons">
+                {ACCOUNT_SHORTCUTS.map((account) => (
+                  <SignInButton mode="modal" key={account.name}>
+                    <button
+                      type="button"
+                      onClick={() =>
+                        sessionStorage.setItem(
+                          LOGIN_TARGET_KEY,
+                          account.name,
+                        )
+                      }
+                    >
+                      <b>{account.role}</b>
+                      <span>{account.name}</span>
+                    </button>
+                  </SignInButton>
+                ))}
+              </div>
+            </section>
             <p className="safe">🔒 계정 정보는 Clerk가 관리합니다.</p>
           </div>
         </div>
-        <section className="demo-login-panel" aria-labelledby="demo-login-title">
-          <div>
-            <b id="demo-login-title">대시보드 바로 보기</b>
-            <span>실제 계정과 데이터는 변경되지 않는 체험 화면입니다.</span>
-          </div>
-          <div className="demo-login-buttons">
-            {[
-              { id: "teacher", role: "교사", name: "정태형" },
-              { id: "student-1", role: "학생1", name: "홍길동" },
-              { id: "student-2", role: "학생2", name: "김철수" },
-              { id: "student-3", role: "학생3", name: "고길동" },
-              { id: "student-4", role: "학생4", name: "무궁화" },
-            ].map((persona) => (
-              <button
-                type="button"
-                key={persona.id}
-                onClick={() =>
-                  onDemoLogin(persona.id as DemoPersonaId)
-                }
-              >
-                <b>{persona.role}</b>
-                <span>{persona.name}</span>
-              </button>
-            ))}
-          </div>
-        </section>
       </main>
     );
   }

@@ -12,7 +12,7 @@ type LessonQuestion = {
   title: string;
 };
 
-export type StudentProgressLesson = {
+type StudentProgressLesson = {
   id: string;
   learning_date: string;
   learning_time: string;
@@ -51,10 +51,8 @@ function answerLabel(answer?: AnswerStatus) {
 
 export default function StudentProgressDashboard({
   profile,
-  demoLessons,
 }: {
   profile: AccountProfile;
-  demoLessons?: StudentProgressLesson[];
 }) {
   const [lessons, setLessons] = useState<StudentProgressLesson[]>([]);
   const [lessonId, setLessonId] = useState("");
@@ -62,14 +60,6 @@ export default function StudentProgressDashboard({
   const [error, setError] = useState("");
 
   useEffect(() => {
-    if (demoLessons) {
-      setLessons(demoLessons);
-      setLessonId(demoLessons[0]?.id ?? "");
-      setError("");
-      setLoading(false);
-      return;
-    }
-
     let active = true;
     fetch("/api/student-lessons", { cache: "no-store" })
       .then(async (response) => {
@@ -106,7 +96,7 @@ export default function StudentProgressDashboard({
     return () => {
       active = false;
     };
-  }, [demoLessons]);
+  }, []);
 
   const selectedLesson = useMemo(
     () => lessons.find((lesson) => lesson.id === lessonId) ?? null,
