@@ -354,7 +354,7 @@ export default function SupabaseAuthSetup({
             )}
             {authError && <p className="profile-save-error">{authError}</p>}
             {authMessage && <p className="auth-success-message">{authMessage}</p>}
-            {mode === "login" && authMessage && (
+            {mode === "login" && (
               <button
                 type="button"
                 className="auth-resend-link"
