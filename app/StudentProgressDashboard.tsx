@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from "react";
-import type { AccountProfile } from "./ClerkDatabaseSetup";
+import type { AccountProfile } from "./SupabaseAuthSetup";
 import { formatLessonPeriod } from "./lesson-period";
 import { getRememberedLesson, rememberLesson } from "./lesson-selection";
 
