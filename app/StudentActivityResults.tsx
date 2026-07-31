@@ -29,8 +29,13 @@ type StudentLesson = {
     answers: Record<string, AnswerStatus>;
   } | null;
   pairing: {
+    partner_user_id: string;
     partner_name: string;
     partner_student_number: number | null;
+    score: number;
+    helps_with: number[];
+    partner_helps_with: number[];
+    generated_at: string;
   } | null;
   post_activity_response: {
     answers: Record<string, AnswerStatus>;
@@ -186,10 +191,10 @@ export default function StudentActivityResults({
       <div className="activity-results-hero">
         <div>
           <p className="overline">AFTER PEER LEARNING</p>
-          <h1>{profile.displayName} 님, 활동 후 달라진 점을 알려주세요</h1>
+          <h1>{profile.displayName} 님, 배움짝 결과를 입력해 주세요</h1>
           <p>
-            배움짝과 공부한 뒤 각 문항을 해결할 수 있게 되었는지 다시
-            확인해요.
+            먼저 나의 배움짝과 역할을 확인하고, 활동 후 달라진 문제풀이
+            결과를 입력해요.
           </p>
         </div>
         <span>
@@ -249,7 +254,77 @@ export default function StudentActivityResults({
           </aside>
 
           {selectedLesson && (
-            <section className="panel activity-result-card">
+            <div className="activity-results-column">
+              <section className="panel student-pairing-card">
+                <div className="student-pairing-head">
+                  <div>
+                    <span>MY LEARNING PARTNER</span>
+                    <h2>나의 배움짝</h2>
+                  </div>
+                  {selectedLesson.pairing && (
+                    <b>보완 점수 {selectedLesson.pairing.score}</b>
+                  )}
+                </div>
+                {selectedLesson.pairing ? (
+                  <>
+                    <div className="student-pair-people">
+                      <div>
+                        <i>{profile.displayName.slice(0, 1)}</i>
+                        <b>{profile.displayName}</b>
+                        <small>{profile.studentNumber}번 · 나</small>
+                      </div>
+                      <strong>↔</strong>
+                      <div>
+                        <i>{selectedLesson.pairing.partner_name.slice(0, 1)}</i>
+                        <b>{selectedLesson.pairing.partner_name}</b>
+                        <small>
+                          {selectedLesson.pairing.partner_student_number ?? "-"}
+                          번 · 배움짝
+                        </small>
+                      </div>
+                    </div>
+                    <div className="student-pair-tasks">
+                      <div>
+                        <span>내가 친구에게 설명해요</span>
+                        <div>
+                          {selectedLesson.pairing.helps_with.length ? (
+                            selectedLesson.pairing.helps_with.map((number) => (
+                              <b key={number}>{number}번</b>
+                            ))
+                          ) : (
+                            <small>설명할 문항이 없어요.</small>
+                          )}
+                        </div>
+                      </div>
+                      <div>
+                        <span>친구에게 도움을 받아요</span>
+                        <div>
+                          {selectedLesson.pairing.partner_helps_with.length ? (
+                            selectedLesson.pairing.partner_helps_with.map(
+                              (number) => <b key={number}>{number}번</b>,
+                            )
+                          ) : (
+                            <small>도움받을 문항이 없어요.</small>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  </>
+                ) : (
+                  <div className="student-pairing-waiting">
+                    <i>♧</i>
+                    <div>
+                      <b>아직 이 수업의 배움짝이 정해지지 않았어요.</b>
+                      <span>
+                        문제풀이 결과를 모두 저장한 뒤 교사가 매칭하면
+                        이곳에서 바로 확인할 수 있어요.
+                      </span>
+                    </div>
+                  </div>
+                )}
+              </section>
+
+              <section className="panel activity-result-card">
               <div className="activity-result-head">
                 <div>
                   <span>
@@ -384,7 +459,8 @@ export default function StudentActivityResults({
                   </div>
                 </>
               )}
-            </section>
+              </section>
+            </div>
           )}
         </div>
       )}

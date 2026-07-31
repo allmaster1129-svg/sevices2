@@ -299,6 +299,7 @@
 :global(.activity-results-hero>span){background:#edf1ff;color:#65739a;border-radius:8px;padding:11px 13px;font-size:10px;white-space:nowrap}
 :global(.activity-results-hero>span b){color:var(--blue);margin-left:5px}
 :global(.activity-results-layout){display:grid;grid-template-columns:245px minmax(0,1fr);gap:18px;align-items:start}
+:global(.activity-results-column){display:flex;flex-direction:column;gap:14px;min-width:0}
 :global(.activity-lesson-picker){padding:16px}
 :global(.activity-result-card){padding:24px}
 :global(.activity-result-head){display:flex;align-items:flex-start;justify-content:space-between;gap:20px;padding-bottom:19px;border-bottom:1px solid var(--line)}
