@@ -36,6 +36,11 @@ coverage/
 Thumbs.db
 desktop.ini
 
+# ── Supabase CLI 로컬 상태 ────────────────────────────
+# 이 컴퓨터에만 해당하는 연결 정보(DB 접속 URL 포함)라 커밋하지 않는다.
+supabase/.temp/
+supabase/.branches/
+
 # ── Vercel CLI 가 자동 추가한 규칙 ────────────────────
 .vercel
 .env*
