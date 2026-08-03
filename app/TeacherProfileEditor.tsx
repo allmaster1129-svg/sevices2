@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import type { AccountProfile } from "./SupabaseAuthSetup";
 import { DEFAULT_TEACHER_SUBJECT } from "./subjects";
 import SubjectMultiSelect from "./SubjectMultiSelect";
+import PasswordChanger from "./PasswordChanger";
 import { createClient } from "@/utils/supabase/client";
 
 type ApiProfile = {
@@ -399,6 +400,17 @@ export default function TeacherProfileEditor({
               {keySaving ? "처리 중..." : keyStatus.configured ? "키 변경하기" : "키 저장하기"}
             </button>
           </div>
+        </section>
+
+        <section className="teacher-settings-section">
+          <div className="teacher-settings-section-heading">
+            <div>
+              <span>04</span>
+              <h3>비밀번호</h3>
+            </div>
+            <p>로그인에 사용하는 비밀번호를 변경할 수 있습니다.</p>
+          </div>
+          <PasswordChanger />
         </section>
 
         <div className="profile-editor-actions teacher-settings-footer">

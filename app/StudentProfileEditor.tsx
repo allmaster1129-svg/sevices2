@@ -6,6 +6,7 @@ import {
   DEFAULT_TEACHER_SUBJECT,
 } from "./subjects";
 import SubjectMultiSelect from "./SubjectMultiSelect";
+import PasswordChanger from "./PasswordChanger";
 
 type ApiProfile = {
   role: "student" | "admin";
@@ -162,6 +163,7 @@ export default function StudentProfileEditor({
           </label>
         </div>
         {error && <p className="profile-editor-error">{error}</p>}
+        <PasswordChanger />
         <div className="profile-editor-actions">
           <button type="button" className="secondary" onClick={onClose}>취소</button>
           <button
