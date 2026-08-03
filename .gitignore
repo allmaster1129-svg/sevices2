@@ -35,3 +35,11 @@ coverage/
 .DS_Store
 Thumbs.db
 desktop.ini
+
+# ── Vercel CLI 가 자동 추가한 규칙 ────────────────────
+.vercel
+.env*
+
+# 위 .env* 규칙이 .env.example 까지 제외하므로 예외를 다시 지정한다.
+# (뒤에 오는 규칙이 우선하므로 이 줄은 반드시 파일 맨 끝에 있어야 한다.)
+!.env.example
